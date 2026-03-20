@@ -49,10 +49,33 @@ npm run dev
 
 ### 初期ログイン
 
-| 項目 | 値 |
-|---|---|
-| ユーザー名 | admin |
-| パスワード | admin123 |
+| ユーザー名 | パスワード | 権限 |
+|---|---|---|
+| admin | admin123 | ADMIN |
+| yamamoto | teacher123 | STAFF |
+| tanaka_t | teacher123 | STAFF |
+
+### DB接続（psql）
+
+```bash
+docker exec -it juku-management-db-1 psql -U juku_user -d juku
+```
+
+よく使うコマンド：
+
+```sql
+\dt          -- テーブル一覧
+\d students  -- テーブル定義
+\q           -- 終了
+```
+
+### テストデータ投入
+
+```bash
+docker exec -i juku-management-db-1 psql -U juku_user -d juku < db/testdata.sql
+```
+
+※ 既存データをクリアして再投入します（staff の admin は保持）。
 
 ---
 
