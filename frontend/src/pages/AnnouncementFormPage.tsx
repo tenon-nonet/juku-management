@@ -30,43 +30,43 @@ export default function AnnouncementFormPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-xl font-bold text-gray-800 mb-6">{isEdit ? 'お知らせ編集' : 'お知らせ作成'}</h1>
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+      <h1 className="text-xl font-bold text-gray-100 mb-6">{isEdit ? 'お知らせ編集' : 'お知らせ作成'}</h1>
+      <form onSubmit={handleSubmit} className="bg-gray-800 rounded-xl shadow-sm border border-gray-700 p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">タイトル <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-200 mb-1">タイトル <span className="text-red-400">*</span></label>
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">内容 <span className="text-red-500">*</span></label>
+          <label className="block text-sm font-medium text-gray-200 mb-1">内容 <span className="text-red-400">*</span></label>
           <textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} required rows={6}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">対象</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">対象</label>
             <select value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
               <option value="ALL">全員</option>
               <option value="GRADE">学年別</option>
               <option value="COURSE">コース別</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">掲示期限</label>
+            <label className="block text-sm font-medium text-gray-200 mb-1">掲示期限</label>
             <input type="datetime-local" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
         </div>
         <div className="flex items-center gap-2">
           <input type="checkbox" id="published" checked={form.isPublished} onChange={(e) => setForm({ ...form, isPublished: e.target.checked })}
             className="w-4 h-4 text-indigo-600 rounded" />
-          <label htmlFor="published" className="text-sm text-gray-700">公開する</label>
+          <label htmlFor="published" className="text-sm text-gray-200">公開する</label>
         </div>
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
         <div className="flex gap-3 pt-2">
           <button type="submit" className="bg-indigo-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">保存</button>
-          <button type="button" onClick={() => navigate('/announcements')} className="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">キャンセル</button>
+          <button type="button" onClick={() => navigate('/announcements')} className="bg-gray-700 text-gray-200 px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-600">キャンセル</button>
         </div>
       </form>
     </div>
