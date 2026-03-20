@@ -35,36 +35,36 @@ function SubjectsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 flex gap-3 items-end">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex gap-3 items-end">
         <div>
-          <label className="text-xs text-gray-400 block mb-1">科目名</label>
+          <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">科目名</label>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400 w-48" />
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400 w-48" />
         </div>
         <div>
-          <label className="text-xs text-gray-400 block mb-1">カラー</label>
+          <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">カラー</label>
           <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })}
-            className="h-9 w-16 border border-gray-600 rounded-lg cursor-pointer" />
+            className="h-9 w-16 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer" />
         </div>
         <button onClick={handleSave} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">
           {editId ? '更新' : '追加'}
         </button>
         {editId && <button onClick={() => { setEditId(null); setForm({ name: '', color: '#6366f1' }) }}
-          className="bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-600">キャンセル</button>}
+          className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600">キャンセル</button>}
       </div>
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-900 border-b border-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">科目名</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">カラー</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">科目名</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">カラー</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {subjects.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-700">
-                <td className="px-4 py-3 font-medium text-gray-100">{s.name}</td>
+              <tr key={s.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{s.name}</td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center gap-2">
                     <span className="w-4 h-4 rounded-full inline-block" style={{ backgroundColor: s.color }} />
@@ -109,38 +109,38 @@ function CoursesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 space-y-3">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="text-xs text-gray-400 block mb-1">コース名 *</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">コース名 *</label>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">科目</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">科目</label>
             <select value={form.subjectId} onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
               <option value="">なし</option>
               {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">月謝 (円) *</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">月謝 (円) *</label>
             <input type="number" value={form.monthlyFee} onChange={(e) => setForm({ ...form, monthlyFee: e.target.value })} min="0"
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">対象学年</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">対象学年</label>
             <input value={form.gradeTarget} onChange={(e) => setForm({ ...form, gradeTarget: e.target.value })}
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">説明</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">説明</label>
             <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
           <div className="flex items-end gap-2 pb-0.5">
-            <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 cursor-pointer">
               <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                 className="w-4 h-4 text-indigo-600 rounded" />
               有効
@@ -152,28 +152,28 @@ function CoursesTab() {
             {editId ? '更新' : '追加'}
           </button>
           {editId && <button onClick={() => { setEditId(null); setForm({ name: '', subjectId: '', gradeTarget: '', monthlyFee: '', description: '', isActive: true }) }}
-            className="bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-600">キャンセル</button>}
+            className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600">キャンセル</button>}
         </div>
       </div>
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-900 border-b border-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">コース名</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">科目</th>
-              <th className="text-right px-4 py-3 font-medium text-gray-400">月謝</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">状態</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">コース名</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">科目</th>
+              <th className="text-right px-4 py-3 font-medium text-gray-500 dark:text-gray-400">月謝</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">状態</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {courses.map((c) => (
-              <tr key={c.id} className="hover:bg-gray-700">
-                <td className="px-4 py-3 font-medium text-gray-100">{c.name}</td>
-                <td className="px-4 py-3 text-gray-400">{c.subjectName ?? '-'}</td>
+              <tr key={c.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{c.name}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{c.subjectName ?? '-'}</td>
                 <td className="px-4 py-3 text-right">¥{c.monthlyFee.toLocaleString()}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.isActive ? 'bg-green-900/50 text-green-400' : 'bg-gray-700 text-gray-400'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'}`}>
                     {c.isActive ? '有効' : '無効'}
                   </span>
                 </td>
@@ -200,27 +200,27 @@ function ExamTypesTab() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 flex gap-3 items-end">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex gap-3 items-end">
         <div>
-          <label className="text-xs text-gray-400 block mb-1">種別名</label>
+          <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">種別名</label>
           <input value={name} onChange={(e) => setName(e.target.value)}
-            className="border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400 w-48" />
+            className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400 w-48" />
         </div>
-        <p className="text-xs text-gray-400 pb-2">※ テスト種別の編集・削除は現在未対応です</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 pb-2">※ テスト種別の編集・削除は現在未対応です</p>
       </div>
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-900 border-b border-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">種別名</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">表示順</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">種別名</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">表示順</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {examTypes.map((t) => (
-              <tr key={t.id} className="hover:bg-gray-700">
-                <td className="px-4 py-3 font-medium text-gray-100">{t.name}</td>
-                <td className="px-4 py-3 text-gray-400">{t.sortOrder}</td>
+              <tr key={t.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{t.name}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{t.sortOrder}</td>
               </tr>
             ))}
           </tbody>
@@ -258,33 +258,33 @@ function StaffTab() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 space-y-3">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           {!editId && (
             <div>
-              <label className="text-xs text-gray-400 block mb-1">ユーザー名 *</label>
+              <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">ユーザー名 *</label>
               <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })}
-                className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
             </div>
           )}
           <div>
-            <label className="text-xs text-gray-400 block mb-1">氏名 *</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">氏名 *</label>
             <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">権限</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">権限</label>
             <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
               <option value="STAFF">スタッフ</option>
               <option value="ADMIN">管理者</option>
             </select>
           </div>
           <div>
-            <label className="text-xs text-gray-400 block mb-1">パスワード {!editId && <span className="text-red-400">*</span>}</label>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">パスワード {!editId && <span className="text-red-400">*</span>}</label>
             <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
               placeholder={editId ? '変更する場合のみ入力' : ''}
-              className="w-full border border-gray-600 rounded-lg px-3 py-2 text-sm bg-gray-700 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
@@ -293,26 +293,26 @@ function StaffTab() {
             {editId ? '更新' : '追加'}
           </button>
           {editId && <button onClick={() => { setEditId(null); setForm({ username: '', fullName: '', role: 'STAFF', password: '' }) }}
-            className="bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-600">キャンセル</button>}
+            className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600">キャンセル</button>}
         </div>
       </div>
-      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-900 border-b border-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">ユーザー名</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">氏名</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-400">権限</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">ユーザー名</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">氏名</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">権限</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {staffList.map((s) => (
-              <tr key={s.id} className="hover:bg-gray-700">
-                <td className="px-4 py-3 text-gray-100">{s.username}</td>
-                <td className="px-4 py-3 font-medium text-gray-100">{s.fullName}</td>
+              <tr key={s.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                <td className="px-4 py-3 text-gray-800 dark:text-gray-100">{s.username}</td>
+                <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{s.fullName}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.role === 'ADMIN' ? 'bg-indigo-900/50 text-indigo-300' : 'bg-blue-900/50 text-blue-400'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'}`}>
                     {s.role === 'ADMIN' ? '管理者' : 'スタッフ'}
                   </span>
                 </td>
@@ -334,11 +334,11 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-gray-100 mb-6">設定</h1>
-      <div className="flex gap-1 mb-6 border-b border-gray-700">
+      <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">設定</h1>
+      <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-700">
         {TABS.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${tab === t.key ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-400 hover:text-gray-200'}`}>
+            className={`px-4 py-2 text-sm font-medium transition-colors ${tab === t.key ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}>
             {t.label}
           </button>
         ))}

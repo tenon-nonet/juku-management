@@ -1,32 +1,14 @@
 @import "tailwindcss";
 
-video::-webkit-media-controls,
-video::-webkit-media-controls-panel,
-video::-webkit-media-controls-play-button,
-video::-webkit-media-controls-start-playback-button {
-  display: none !important;
-}
-
-@keyframes enlightenmentFloat {
-  0%   { opacity: 1; transform: translateY(0) scale(1); }
-  60%  { opacity: 1; transform: translateY(-24px) scale(1.1); }
-  100% { opacity: 0; transform: translateY(-40px) scale(0.9); }
-}
-
-.enlightenment-float {
-  animation: enlightenmentFloat 1.4s ease-out forwards;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
 html {
   font-size: 15px;
-  background-color: #000;
 }
 
 body,
 #root {
   min-height: 100vh;
-  background-color: #000;
-  color: #f5f5f5;
   margin: 0;
 }
 
@@ -35,31 +17,3 @@ body,
     font-size: 18px;
   }
 }
-
-/* React Flow Controls ボタンのスタイル上書き */
-.react-flow__controls .react-flow__controls-button {
-  background: #3f3f46 !important;
-  border-color: #52525b !important;
-  fill: #d4d4d8 !important;
-  color: #d4d4d8 !important;
-}
-.react-flow__controls .react-flow__controls-button:hover {
-  background: #52525b !important;
-  fill: #ffffff !important;
-  color: #ffffff !important;
-}
-.react-flow__controls .react-flow__controls-button svg {
-  fill: #d4d4d8 !important;
-}
-.react-flow__controls .react-flow__controls-button:hover svg {
-  fill: #ffffff !important;
-}
-
-/* React Flow attribution link */
-.react-flow__attribution {
-  background: #ffffff !important;
-}
-.react-flow__attribution a {
-  color: #000000 !important;
-}
-
