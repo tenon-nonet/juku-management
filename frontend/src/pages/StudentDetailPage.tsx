@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getStudent, getStudentCourses, getStudentAttendances, getStudentExamResults, getStudentInvoices, getCourses, enrollStudentCourse, unenrollStudentCourse } from '../api'
 import type { Student, StudentCourse, Attendance, ExamResult, Invoice, Course } from '../types'
+import { STUDENT_STATUS_LABEL, ATTEND_LABEL, INVOICE_STATUS_LABEL } from '../constants'
 
-const STATUS_LABEL: Record<string, string> = { ACTIVE: '在籍', INACTIVE: '退塾', SUSPENDED: '休塾' }
-const ATTEND_LABEL: Record<string, string> = { PRESENT: '出席', ABSENT: '欠席', LATE: '遅刻', EXCUSED: '公欠' }
 const ATTEND_COLOR: Record<string, string> = {
-  PRESENT: 'text-green-600', ABSENT: 'text-red-500', LATE: 'text-yellow-600', EXCUSED: 'text-blue-500'
+  PRESENT: 'text-green-600', ABSENT: 'text-red-500', LATE: 'text-yellow-600', EXCUSED: 'text-blue-500',
 }
-const INV_COLOR: Record<string, string> = { UNPAID: 'text-red-500', PAID: 'text-green-600', OVERDUE: 'text-orange-500', CANCELLED: 'text-gray-400' }
-const INV_LABEL: Record<string, string> = { UNPAID: '未入金', PAID: '入金済', OVERDUE: '期限超過', CANCELLED: 'キャンセル' }
+const INV_COLOR: Record<string, string> = {
+  UNPAID: 'text-red-500', PAID: 'text-green-600', OVERDUE: 'text-orange-500', CANCELLED: 'text-gray-400',
+}
 
 type Tab = 'info' | 'courses' | 'attendance' | 'exams' | 'invoices'
 
@@ -81,7 +81,7 @@ export default function StudentDetailPage() {
           <div className="grid grid-cols-2 gap-4 text-sm">
             {[
               ['学年', student.grade],
-              ['ステータス', STATUS_LABEL[student.status]],
+              ['ステータス', STUDENT_STATUS_LABEL[student.status]],
               ['学校', student.schoolName ?? '-'],
               ['生年月日', student.birthDate ?? '-'],
               ['入塾日', student.enrolledAt],
@@ -193,7 +193,7 @@ export default function StudentDetailPage() {
                 <tr key={inv.id}>
                   <td className="py-2">{inv.billingMonth}</td>
                   <td className="py-2 text-right">¥{inv.totalAmount.toLocaleString()}</td>
-                  <td className={`py-2 font-medium ${INV_COLOR[inv.status]}`}>{INV_LABEL[inv.status]}</td>
+                  <td className={`py-2 font-medium ${INV_COLOR[inv.status]}`}>{INVOICE_STATUS_LABEL[inv.status]}</td>
                   <td className="py-2">{inv.dueDate}</td>
                   <td className="py-2 text-right">
                     <Link to={`/invoices/${inv.id}`} className="text-indigo-600 hover:underline text-xs">詳細</Link>

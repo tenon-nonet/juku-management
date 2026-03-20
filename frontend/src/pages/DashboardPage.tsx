@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getDashboardSummary, getTodayLessons, getUnpaidInvoices } from '../api'
 import type { DashboardSummary, Lesson, Invoice } from '../types'
-
-const STATUS_COLOR: Record<string, string> = {
-  UNPAID: 'bg-red-100 text-red-700', PAID: 'bg-green-100 text-green-700',
-  OVERDUE: 'bg-orange-100 text-orange-700', CANCELLED: 'bg-gray-100 text-gray-500'
-}
+import { INVOICE_STATUS_COLOR, INVOICE_STATUS_LABEL } from '../constants'
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
@@ -82,8 +78,8 @@ export default function DashboardPage() {
                     <span className="text-gray-500 ml-2">{inv.billingMonth}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[inv.status]}`}>
-                      {inv.status === 'OVERDUE' ? '期限超過' : '未入金'}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${INVOICE_STATUS_COLOR[inv.status]}`}>
+                      {INVOICE_STATUS_LABEL[inv.status]}
                     </span>
                     <span className="font-medium text-gray-800">¥{inv.totalAmount.toLocaleString()}</span>
                   </div>

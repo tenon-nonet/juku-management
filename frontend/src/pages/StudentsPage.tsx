@@ -2,13 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getStudents, deleteStudent } from '../api'
 import type { Student } from '../types'
-
-const STATUS_LABEL: Record<string, string> = { ACTIVE: '在籍', INACTIVE: '退塾', SUSPENDED: '休塾' }
-const STATUS_COLOR: Record<string, string> = {
-  ACTIVE: 'bg-green-100 text-green-700',
-  INACTIVE: 'bg-gray-100 text-gray-600',
-  SUSPENDED: 'bg-yellow-100 text-yellow-700',
-}
+import { STUDENT_STATUS_LABEL, STUDENT_STATUS_COLOR } from '../constants'
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([])
@@ -93,8 +87,8 @@ export default function StudentsPage() {
                 <td className="px-4 py-3 text-gray-600">{s.schoolName ?? '-'}</td>
                 <td className="px-4 py-3 text-gray-600">{s.guardianName ?? '-'}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[s.status]}`}>
-                    {STATUS_LABEL[s.status]}
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STUDENT_STATUS_COLOR[s.status]}`}>
+                    {STUDENT_STATUS_LABEL[s.status]}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-600">{s.enrolledAt}</td>

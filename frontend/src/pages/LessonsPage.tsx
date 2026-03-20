@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getLessons } from '../api'
 import type { Lesson } from '../types'
-
-const STATUS_LABEL: Record<string, string> = { SCHEDULED: '予定', DONE: '完了', CANCELLED: 'キャンセル' }
-const STATUS_COLOR: Record<string, string> = {
-  SCHEDULED: 'bg-blue-100 text-blue-700', DONE: 'bg-green-100 text-green-700', CANCELLED: 'bg-gray-100 text-gray-500'
-}
+import { LESSON_STATUS_LABEL, LESSON_STATUS_COLOR } from '../constants'
 
 function getWeekRange(offset = 0) {
   const now = new Date()
@@ -79,8 +75,8 @@ export default function LessonsPage() {
                   <td className="px-4 py-3 text-gray-600">{l.classroom ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-600">{l.durationMin}分</td>
                   <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[l.status]}`}>
-                      {STATUS_LABEL[l.status]}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${LESSON_STATUS_COLOR[l.status]}`}>
+                      {LESSON_STATUS_LABEL[l.status]}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>

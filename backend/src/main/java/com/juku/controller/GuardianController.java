@@ -33,8 +33,7 @@ public class GuardianController {
     @GetMapping("/{id}/students")
     public ResponseEntity<List<StudentResponse>> getStudents(@PathVariable Long id) {
         return ResponseEntity.ok(
-            studentRepository.findAll().stream()
-                .filter(s -> s.getGuardian() != null && s.getGuardian().getId().equals(id))
+            studentRepository.findByGuardianId(id).stream()
                 .map(StudentResponse::new)
                 .toList()
         );

@@ -89,13 +89,11 @@ export const getInvoices = (params?: { month?: string; status?: string; studentI
   api.get<Invoice[]>('/invoices', { params })
 export const getInvoice = (id: number) => api.get<Invoice>(`/invoices/${id}`)
 export const createInvoice = (data: object) => api.post<Invoice>('/invoices', data)
-export const updateInvoice = (id: number, data: object) => api.put<Invoice>(`/invoices/${id}`, data)
 export const updateInvoiceStatus = (id: number, status: string) =>
   api.patch(`/invoices/${id}/status`, { status })
 export const getInvoicePayments = (id: number) => api.get<Payment[]>(`/invoices/${id}/payments`)
 export const addPayment = (id: number, data: Partial<Payment>) =>
   api.post<Payment>(`/invoices/${id}/payments`, data)
-export const deletePayment = (id: number) => api.delete(`/payments/${id}`)
 
 // Announcements
 export const getAnnouncements = () => api.get<Announcement[]>('/announcements')

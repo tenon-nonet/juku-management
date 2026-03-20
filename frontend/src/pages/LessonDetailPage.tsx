@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getLesson, getLessonAttendances, updateAttendances, getStudents } from '../api'
 import type { Lesson, Attendance, Student } from '../types'
+import { ATTEND_STATUSES, ATTEND_LABEL } from '../constants'
 
-const STATUSES = ['PRESENT', 'ABSENT', 'LATE', 'EXCUSED'] as const
-const STATUS_LABEL: Record<string, string> = { PRESENT: '出席', ABSENT: '欠席', LATE: '遅刻', EXCUSED: '公欠' }
-const STATUS_COLOR: Record<string, string> = {
+const ATTEND_BADGE_COLOR: Record<string, string> = {
   PRESENT: 'bg-green-100 text-green-700 ring-green-400',
   ABSENT: 'bg-red-100 text-red-700 ring-red-400',
   LATE: 'bg-yellow-100 text-yellow-700 ring-yellow-400',
@@ -85,10 +84,10 @@ export default function LessonDetailPage() {
                 <div key={s.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <span className="text-sm font-medium text-gray-800 w-32">{s.fullName}</span>
                   <div className="flex gap-1">
-                    {STATUSES.map((st) => (
+                    {ATTEND_STATUSES.map((st) => (
                       <button key={st} onClick={() => setStudentStatus(s.id, st)}
-                        className={`text-xs px-3 py-1 rounded-full font-medium transition-all ${current === st ? `${STATUS_COLOR[st]} ring-2 ring-offset-1` : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100'}`}>
-                        {STATUS_LABEL[st]}
+                        className={`text-xs px-3 py-1 rounded-full font-medium transition-all ${current === st ? `${ATTEND_BADGE_COLOR[st]} ring-2 ring-offset-1` : 'bg-white text-gray-500 border border-gray-200 hover:bg-gray-100'}`}>
+                        {ATTEND_LABEL[st]}
                       </button>
                     ))}
                   </div>

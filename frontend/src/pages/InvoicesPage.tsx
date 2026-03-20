@@ -2,12 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getInvoices } from '../api'
 import type { Invoice } from '../types'
-
-const STATUS_LABEL: Record<string, string> = { UNPAID: '未入金', PAID: '入金済', OVERDUE: '期限超過', CANCELLED: 'キャンセル' }
-const STATUS_COLOR: Record<string, string> = {
-  UNPAID: 'bg-red-100 text-red-700', PAID: 'bg-green-100 text-green-700',
-  OVERDUE: 'bg-orange-100 text-orange-700', CANCELLED: 'bg-gray-100 text-gray-500'
-}
+import { INVOICE_STATUS_LABEL, INVOICE_STATUS_COLOR } from '../constants'
 
 function currentMonth() {
   const d = new Date()
@@ -80,8 +75,8 @@ export default function InvoicesPage() {
                 <td className="px-4 py-3 text-gray-600">{inv.billingMonth}</td>
                 <td className="px-4 py-3 text-right font-medium">¥{inv.totalAmount.toLocaleString()}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[inv.status]}`}>
-                    {STATUS_LABEL[inv.status]}
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${INVOICE_STATUS_COLOR[inv.status]}`}>
+                    {INVOICE_STATUS_LABEL[inv.status]}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-600">{inv.dueDate}</td>
