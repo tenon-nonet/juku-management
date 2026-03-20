@@ -1,281 +1,249 @@
--- FROMDEX DB 初期化スクリプト
--- 現在のスキーマをすべて反映した完全版
--- 実行: psql -U postgres -d gamewiki -f db/init.sql
+-- 塾顧客管理システム DB初期化スクリプト
+-- 実行: psql -U postgres -d juku -f db/init.sql
 
--- ユーザー
-CREATE TABLE IF NOT EXISTS users (
-    id          BIGSERIAL PRIMARY KEY,
-    username    VARCHAR(50)  UNIQUE NOT NULL,
-    password    VARCHAR(255) NOT NULL,
-    role        VARCHAR(20)  NOT NULL,
-    enlightenment INT        NOT NULL DEFAULT 0,
-    created_at  TIMESTAMP
+-- =====================================================
+-- スタッフ（認証ユーザー）
+-- =====================================================
+CREATE TABLE IF NOT EXISTS staff (
+    id            BIGSERIAL     PRIMARY KEY,
+    username      VARCHAR(50)   UNIQUE NOT NULL,
+    password      VARCHAR(255)  NOT NULL,
+    full_name     VARCHAR(100)  NOT NULL,
+    role          VARCHAR(20)   NOT NULL DEFAULT 'STAFF',
+    is_active     BOOLEAN       NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMP     NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP     NOT NULL DEFAULT NOW()
 );
 
--- ゲーム
-CREATE TABLE IF NOT EXISTS games (
-    id            BIGSERIAL PRIMARY KEY,
-    name          VARCHAR(100) NOT NULL,
+-- =====================================================
+-- 保護者
+-- =====================================================
+CREATE TABLE IF NOT EXISTS guardians (
+    id              BIGSERIAL     PRIMARY KEY,
+    full_name       VARCHAR(100)  NOT NULL,
+    full_name_kana  VARCHAR(100),
+    phone           VARCHAR(20)   NOT NULL,
+    phone_sub       VARCHAR(20),
+    email           VARCHAR(255),
+    address         TEXT,
+    memo            TEXT,
+    created_at      TIMESTAMP     NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP     NOT NULL DEFAULT NOW()
+);
+
+-- =====================================================
+-- 生徒
+-- =====================================================
+CREATE TABLE IF NOT EXISTS students (
+    id              BIGSERIAL     PRIMARY KEY,
+    full_name       VARCHAR(100)  NOT NULL,
+    full_name_kana  VARCHAR(100),
+    birth_date      DATE,
+    grade           VARCHAR(20)   NOT NULL,
+    school_name     VARCHAR(100),
+    guardian_id     BIGINT        REFERENCES guardians(id) ON DELETE SET NULL,
+    status          VARCHAR(20)   NOT NULL DEFAULT 'ACTIVE',
+    enrolled_at     DATE          NOT NULL DEFAULT CURRENT_DATE,
+    left_at         DATE,
+    memo            TEXT,
+    created_at      TIMESTAMP     NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP     NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_students_status ON students(status);
+CREATE INDEX IF NOT EXISTS idx_students_guardian_id ON students(guardian_id);
+
+-- =====================================================
+-- 科目
+-- =====================================================
+CREATE TABLE IF NOT EXISTS subjects (
+    id          BIGSERIAL    PRIMARY KEY,
+    name        VARCHAR(50)  UNIQUE NOT NULL,
+    color       VARCHAR(7)   DEFAULT '#6366f1',
+    sort_order  INTEGER      NOT NULL DEFAULT 0,
+    created_at  TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+-- =====================================================
+-- コース
+-- =====================================================
+CREATE TABLE IF NOT EXISTS courses (
+    id            BIGSERIAL     PRIMARY KEY,
+    name          VARCHAR(100)  NOT NULL,
+    subject_id    BIGINT        REFERENCES subjects(id) ON DELETE SET NULL,
+    grade_target  VARCHAR(50),
+    monthly_fee   INTEGER       NOT NULL DEFAULT 0,
     description   TEXT,
-    image_path    VARCHAR(255),
-    platforms     TEXT,
-    release_dates TEXT,
-    awards        TEXT,
-    staff         TEXT,
-    categories    TEXT,
-    sort_order    INTEGER      NOT NULL DEFAULT 0,
-    is_visible    BOOLEAN      NOT NULL DEFAULT TRUE,
-    created_at    TIMESTAMP,
-    updated_at    TIMESTAMP
+    is_active     BOOLEAN       NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMP     NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP     NOT NULL DEFAULT NOW()
 );
 
--- タグ
-CREATE TABLE IF NOT EXISTS tags (
-    id         BIGSERIAL PRIMARY KEY,
-    name       VARCHAR(50) NOT NULL,
-    type       VARCHAR(10) NOT NULL DEFAULT 'ITEM',
-    attribute  VARCHAR(50),
-    sort_order INT         DEFAULT 0,
-    game_id    BIGINT      REFERENCES games(id),
-    UNIQUE (name, game_id, type)
+-- =====================================================
+-- 生徒×コース（受講登録）
+-- =====================================================
+CREATE TABLE IF NOT EXISTS student_courses (
+    id          BIGSERIAL  PRIMARY KEY,
+    student_id  BIGINT     NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    course_id   BIGINT     NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    started_at  DATE       NOT NULL DEFAULT CURRENT_DATE,
+    ended_at    DATE,
+    UNIQUE (student_id, course_id, started_at)
 );
 
--- タグ属性
-CREATE TABLE IF NOT EXISTS tag_attributes (
-    id         BIGSERIAL PRIMARY KEY,
-    name       VARCHAR(50) NOT NULL,
-    game_id    BIGINT      NOT NULL REFERENCES games(id),
-    sort_order INT         DEFAULT 0,
-    UNIQUE (name, game_id)
+CREATE INDEX IF NOT EXISTS idx_student_courses_student ON student_courses(student_id);
+
+-- =====================================================
+-- 授業コマ（スケジュール）
+-- =====================================================
+CREATE TABLE IF NOT EXISTS lessons (
+    id            BIGSERIAL    PRIMARY KEY,
+    course_id     BIGINT       NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    teacher_id    BIGINT       REFERENCES staff(id) ON DELETE SET NULL,
+    classroom     VARCHAR(50),
+    scheduled_at  TIMESTAMP    NOT NULL,
+    duration_min  INTEGER      NOT NULL DEFAULT 60,
+    status        VARCHAR(20)  NOT NULL DEFAULT 'SCHEDULED',
+    note          TEXT,
+    created_at    TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
--- アイテム
-CREATE TABLE IF NOT EXISTS items (
-    id          BIGSERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    description TEXT,
-    image_path  VARCHAR(255),
-    category    VARCHAR(50),
-    game_id     BIGINT       NOT NULL REFERENCES games(id),
-    sort_order  INTEGER      NOT NULL DEFAULT 0,
-    updated_by  VARCHAR(100),
-    created_at  TIMESTAMP,
-    updated_at  TIMESTAMP
+CREATE INDEX IF NOT EXISTS idx_lessons_scheduled_at ON lessons(scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_lessons_course_id ON lessons(course_id);
+
+-- =====================================================
+-- 出席記録
+-- =====================================================
+CREATE TABLE IF NOT EXISTS attendances (
+    id          BIGSERIAL    PRIMARY KEY,
+    lesson_id   BIGINT       NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    student_id  BIGINT       NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    status      VARCHAR(20)  NOT NULL DEFAULT 'PRESENT',
+    checked_at  TIMESTAMP,
+    note        TEXT,
+    UNIQUE (lesson_id, student_id)
 );
 
--- アイテム×タグ
-CREATE TABLE IF NOT EXISTS item_tags (
-    item_id BIGINT NOT NULL REFERENCES items(id) ON DELETE CASCADE,
-    tag_id  BIGINT NOT NULL REFERENCES tags(id)  ON DELETE CASCADE,
-    PRIMARY KEY (item_id, tag_id)
+CREATE INDEX IF NOT EXISTS idx_attendances_student ON attendances(student_id);
+CREATE INDEX IF NOT EXISTS idx_attendances_lesson ON attendances(lesson_id);
+
+-- =====================================================
+-- テスト種別マスタ
+-- =====================================================
+CREATE TABLE IF NOT EXISTS exam_types (
+    id          BIGSERIAL    PRIMARY KEY,
+    name        VARCHAR(50)  UNIQUE NOT NULL,
+    sort_order  INTEGER      NOT NULL DEFAULT 0
 );
 
--- コメント（アイテム考察）
-CREATE TABLE IF NOT EXISTS comments (
-    id         BIGSERIAL PRIMARY KEY,
-    content    TEXT        NOT NULL,
-    username   VARCHAR(50) NOT NULL,
-    item_id    BIGINT      NOT NULL REFERENCES items(id),
-    parent_id  BIGINT,
-    created_at TIMESTAMP
+-- =====================================================
+-- テスト・成績記録
+-- =====================================================
+CREATE TABLE IF NOT EXISTS exam_results (
+    id              BIGSERIAL      PRIMARY KEY,
+    student_id      BIGINT         NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    subject_id      BIGINT         NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+    exam_type_id    BIGINT         REFERENCES exam_types(id) ON DELETE SET NULL,
+    exam_name       VARCHAR(100)   NOT NULL,
+    exam_date       DATE           NOT NULL,
+    score           NUMERIC(5,1)   NOT NULL,
+    max_score       NUMERIC(5,1)   NOT NULL DEFAULT 100,
+    rank            INTEGER,
+    total_students  INTEGER,
+    memo            TEXT,
+    created_at      TIMESTAMP      NOT NULL DEFAULT NOW(),
+    updated_at      TIMESTAMP      NOT NULL DEFAULT NOW()
 );
 
--- コメントいいね
-CREATE TABLE IF NOT EXISTS comment_likes (
-    id         BIGSERIAL PRIMARY KEY,
-    comment_id BIGINT      NOT NULL,
-    username   VARCHAR(50) NOT NULL,
-    UNIQUE (comment_id, username)
+CREATE INDEX IF NOT EXISTS idx_exam_results_student ON exam_results(student_id);
+CREATE INDEX IF NOT EXISTS idx_exam_results_exam_date ON exam_results(exam_date);
+
+-- =====================================================
+-- 請求書
+-- =====================================================
+CREATE TABLE IF NOT EXISTS invoices (
+    id             BIGSERIAL    PRIMARY KEY,
+    student_id     BIGINT       NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    billing_month  VARCHAR(7)   NOT NULL,
+    total_amount   INTEGER      NOT NULL,
+    due_date       DATE         NOT NULL,
+    status         VARCHAR(20)  NOT NULL DEFAULT 'UNPAID',
+    note           TEXT,
+    issued_at      TIMESTAMP    NOT NULL DEFAULT NOW(),
+    created_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
+    UNIQUE (student_id, billing_month)
 );
 
--- ボス
-CREATE TABLE IF NOT EXISTS bosses (
-    id          BIGSERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    description TEXT,
-    image_path  VARCHAR(255),
-    game_id     BIGINT       NOT NULL REFERENCES games(id),
-    sort_order  INTEGER      NOT NULL DEFAULT 0,
-    updated_by  VARCHAR(100),
-    created_at  TIMESTAMP,
-    updated_at  TIMESTAMP
+CREATE INDEX IF NOT EXISTS idx_invoices_student ON invoices(student_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoices_due_date ON invoices(due_date);
+
+-- =====================================================
+-- 請求明細
+-- =====================================================
+CREATE TABLE IF NOT EXISTS invoice_items (
+    id           BIGSERIAL     PRIMARY KEY,
+    invoice_id   BIGINT        NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    description  VARCHAR(200)  NOT NULL,
+    amount       INTEGER       NOT NULL,
+    sort_order   INTEGER       NOT NULL DEFAULT 0
 );
 
--- ボス×タグ
-CREATE TABLE IF NOT EXISTS boss_tags (
-    boss_id BIGINT NOT NULL REFERENCES bosses(id) ON DELETE CASCADE,
-    tag_id  BIGINT NOT NULL REFERENCES tags(id)   ON DELETE CASCADE,
-    PRIMARY KEY (boss_id, tag_id)
+-- =====================================================
+-- 支払い記録
+-- =====================================================
+CREATE TABLE IF NOT EXISTS payments (
+    id           BIGSERIAL    PRIMARY KEY,
+    invoice_id   BIGINT       NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    paid_amount  INTEGER      NOT NULL,
+    paid_at      DATE         NOT NULL,
+    method       VARCHAR(30)  NOT NULL DEFAULT 'BANK_TRANSFER',
+    note         TEXT,
+    recorded_by  BIGINT       REFERENCES staff(id) ON DELETE SET NULL,
+    created_at   TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
--- ボスセリフ
-CREATE TABLE IF NOT EXISTS boss_dialogues (
-    id          BIGSERIAL PRIMARY KEY,
-    boss_id     BIGINT  NOT NULL REFERENCES bosses(id) ON DELETE CASCADE,
-    text        TEXT    NOT NULL,
-    order_index INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_boss_dialogues_boss_id ON boss_dialogues(boss_id);
+CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
 
--- ボスドロップアイテム
-CREATE TABLE IF NOT EXISTS boss_drop_items (
-    boss_id BIGINT NOT NULL REFERENCES bosses(id) ON DELETE CASCADE,
-    item_id BIGINT NOT NULL REFERENCES items(id)  ON DELETE CASCADE,
-    PRIMARY KEY (boss_id, item_id)
-);
-
--- NPC
-CREATE TABLE IF NOT EXISTS npcs (
-    id          BIGSERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    description TEXT,
-    image_path  VARCHAR(255),
-    game_id     BIGINT       NOT NULL REFERENCES games(id),
-    sort_order  INTEGER      NOT NULL DEFAULT 0,
-    updated_by  VARCHAR(100),
-    created_at  TIMESTAMP,
-    updated_at  TIMESTAMP
+-- =====================================================
+-- お知らせ
+-- =====================================================
+CREATE TABLE IF NOT EXISTS announcements (
+    id            BIGSERIAL     PRIMARY KEY,
+    title         VARCHAR(200)  NOT NULL,
+    content       TEXT          NOT NULL,
+    target        VARCHAR(20)   NOT NULL DEFAULT 'ALL',
+    target_value  VARCHAR(50),
+    is_published  BOOLEAN       NOT NULL DEFAULT FALSE,
+    published_at  TIMESTAMP,
+    expires_at    TIMESTAMP,
+    created_by    BIGINT        REFERENCES staff(id) ON DELETE SET NULL,
+    created_at    TIMESTAMP     NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP     NOT NULL DEFAULT NOW()
 );
 
--- NPC×タグ
-CREATE TABLE IF NOT EXISTS npc_tags (
-    npc_id BIGINT NOT NULL REFERENCES npcs(id) ON DELETE CASCADE,
-    tag_id BIGINT NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-    PRIMARY KEY (npc_id, tag_id)
-);
+-- =====================================================
+-- 初期データ（管理者アカウント: admin / admin123）
+-- =====================================================
+INSERT INTO staff (username, password, full_name, role)
+VALUES ('admin', '$2a$10$qVBpxyFG8S0b9hHNZaB6vuNqR/En/SIYE2XX4QIc.IbRf1ZuT8os6', '管理者', 'ADMIN')
+ON CONFLICT (username) DO NOTHING;
 
--- NPCセリフ
-CREATE TABLE IF NOT EXISTS npc_dialogues (
-    id          BIGSERIAL PRIMARY KEY,
-    npc_id      BIGINT  NOT NULL REFERENCES npcs(id) ON DELETE CASCADE,
-    text        TEXT    NOT NULL,
-    order_index INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_npc_dialogues_npc_id ON npc_dialogues(npc_id);
+-- 科目初期データ
+INSERT INTO subjects (name, color, sort_order) VALUES
+  ('英語', '#3b82f6', 1),
+  ('数学', '#ef4444', 2),
+  ('国語', '#22c55e', 3),
+  ('理科', '#f59e0b', 4),
+  ('社会', '#8b5cf6', 5)
+ON CONFLICT (name) DO NOTHING;
 
--- NPCドロップアイテム
-CREATE TABLE IF NOT EXISTS npc_drop_items (
-    npc_id  BIGINT NOT NULL REFERENCES npcs(id)   ON DELETE CASCADE,
-    item_id BIGINT NOT NULL REFERENCES items(id)  ON DELETE CASCADE,
-    PRIMARY KEY (npc_id, item_id)
-);
-
--- 編集承認リクエスト
-CREATE TABLE IF NOT EXISTS edit_requests (
-    id                  BIGSERIAL PRIMARY KEY,
-    entity_type         VARCHAR(20)  NOT NULL,
-    entity_id           BIGINT,
-    action_type         VARCHAR(20)  NOT NULL,
-    status              VARCHAR(20)  NOT NULL,
-    requested_by        VARCHAR(100) NOT NULL,
-    reviewed_by         VARCHAR(100),
-    entity_name         VARCHAR(100),
-    game_id             BIGINT,
-    game_name           VARCHAR(100),
-    payload             TEXT,
-    pending_image_path  VARCHAR(255),
-    review_comment      TEXT,
-    reviewed_at         TIMESTAMP,
-    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_edit_requests_status_created_at ON edit_requests(status, created_at);
-
--- 編集履歴
-CREATE TABLE IF NOT EXISTS edit_histories (
-    id          BIGSERIAL PRIMARY KEY,
-    username    VARCHAR(50)  NOT NULL,
-    entity_type VARCHAR(20)  NOT NULL,
-    entity_id   BIGINT       NOT NULL,
-    entity_name VARCHAR(100) NOT NULL,
-    action_type VARCHAR(20)  NOT NULL,
-    game_name   VARCHAR(100) NOT NULL,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_edit_histories_username_created_at ON edit_histories(username, created_at);
-
--- 掲示板スレッド
-CREATE TABLE IF NOT EXISTS board_threads (
-    id             BIGSERIAL PRIMARY KEY,
-    game_id        BIGINT       REFERENCES games(id),
-    board_type     VARCHAR(20)  NOT NULL DEFAULT 'GAME',
-    title          VARCHAR(200) NOT NULL,
-    content        TEXT         NOT NULL,
-    username       VARCHAR(100) NOT NULL,
-    author_key     VARCHAR(255) NOT NULL DEFAULT '',
-    pinned         BOOLEAN      NOT NULL DEFAULT FALSE,
-    locked         BOOLEAN      NOT NULL DEFAULT FALSE,
-    reply_count    INTEGER      NOT NULL DEFAULT 0,
-    last_posted_at TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    created_at     TIMESTAMP,
-    updated_at     TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_board_threads_game_id   ON board_threads(game_id);
-CREATE INDEX IF NOT EXISTS idx_board_threads_board_type ON board_threads(board_type);
-
--- 掲示板投稿
-CREATE TABLE IF NOT EXISTS board_posts (
-    id         BIGSERIAL PRIMARY KEY,
-    thread_id  BIGINT       NOT NULL REFERENCES board_threads(id) ON DELETE CASCADE,
-    content    TEXT         NOT NULL,
-    username   VARCHAR(100) NOT NULL,
-    author_key VARCHAR(255) NOT NULL DEFAULT '',
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_board_posts_thread_id ON board_posts(thread_id);
-
--- 通報
-CREATE TABLE IF NOT EXISTS reports (
-    id               BIGSERIAL PRIMARY KEY,
-    target_type      VARCHAR(30)  NOT NULL,
-    target_id        BIGINT       NOT NULL,
-    reason           VARCHAR(200) NOT NULL,
-    reported_by      VARCHAR(100) NOT NULL,
-    reporter_key     VARCHAR(255) NOT NULL,
-    target_author    VARCHAR(100),
-    target_author_key VARCHAR(255),
-    target_summary   TEXT,
-    status           VARCHAR(20)  NOT NULL DEFAULT 'NEW',
-    created_at       TIMESTAMP,
-    reviewed_by      VARCHAR(100),
-    reviewed_at      TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
-CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_id);
-CREATE UNIQUE INDEX IF NOT EXISTS uq_reports_reporter_target ON reports(target_type, target_id, reporter_key);
-
--- BAN
-CREATE TABLE IF NOT EXISTS bans (
-    id         BIGSERIAL PRIMARY KEY,
-    author_key VARCHAR(255) NOT NULL UNIQUE,
-    reason     VARCHAR(255) NOT NULL,
-    created_by VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP
-);
-
--- 日次訪問者
-CREATE TABLE IF NOT EXISTS daily_visitors (
-    id           BIGSERIAL PRIMARY KEY,
-    visit_date   DATE        NOT NULL,
-    visitor_hash VARCHAR(64) NOT NULL,
-    created_at   TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uk_daily_visitors_date_hash UNIQUE (visit_date, visitor_hash)
-);
-CREATE INDEX IF NOT EXISTS idx_daily_visitors_visit_date ON daily_visitors(visit_date);
-
--- 相関図
-CREATE TABLE IF NOT EXISTS relation_graphs (
-    id         BIGSERIAL PRIMARY KEY,
-    game_id    BIGINT       NOT NULL REFERENCES games(id) ON DELETE CASCADE,
-    username   VARCHAR(100),
-    graph_data TEXT,
-    updated_by VARCHAR(100),
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
-);
--- 公式グラフ（username IS NULL）はゲームごとに1件
-CREATE UNIQUE INDEX IF NOT EXISTS relation_graphs_game_id_official_idx
-    ON relation_graphs(game_id) WHERE username IS NULL;
--- ユーザーグラフはゲーム×ユーザーで1件
-CREATE UNIQUE INDEX IF NOT EXISTS relation_graphs_game_id_username_idx
-    ON relation_graphs(game_id, username) WHERE username IS NOT NULL;
+-- テスト種別初期データ
+INSERT INTO exam_types (name, sort_order) VALUES
+  ('定期テスト', 1),
+  ('模擬試験', 2),
+  ('実力テスト', 3),
+  ('小テスト', 4)
+ON CONFLICT (name) DO NOTHING;

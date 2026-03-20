@@ -23,10 +23,10 @@ jobs:
         include:
           - service: frontend
             context: ./frontend
-            image_suffix: game-wiki-frontend
+            image_suffix: juku-management-frontend
           - service: backend
             context: ./backend
-            image_suffix: game-wiki-backend
+            image_suffix: juku-management-backend
 
     steps:
       - name: Check out repository

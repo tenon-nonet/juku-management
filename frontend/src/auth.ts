@@ -3,6 +3,7 @@ const AUTH_CHANGED_EVENT = 'auth-changed'
 export const getToken = () => localStorage.getItem('token')
 export const getUsername = () => localStorage.getItem('username')
 export const getRole = () => localStorage.getItem('role')
+export const getFullName = () => localStorage.getItem('fullName')
 export const isLoggedIn = () => !!getToken()
 export const isAdmin = () => getRole() === 'ADMIN'
 
@@ -15,10 +16,11 @@ export const onAuthChanged = (listener: () => void) => {
   return () => window.removeEventListener(AUTH_CHANGED_EVENT, listener)
 }
 
-export const saveAuth = (token: string, username: string, role: string) => {
+export const saveAuth = (token: string, username: string, role: string, fullName: string) => {
   localStorage.setItem('token', token)
   localStorage.setItem('username', username)
   localStorage.setItem('role', role)
+  localStorage.setItem('fullName', fullName)
   notifyAuthChanged()
 }
 
@@ -26,9 +28,6 @@ export const clearAuth = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('username')
   localStorage.removeItem('role')
+  localStorage.removeItem('fullName')
   notifyAuthChanged()
-}
-
-export const notifyEnlightenment = (amount: number) => {
-  window.dispatchEvent(new CustomEvent('enlightenmentUpdate', { detail: { amount } }))
 }

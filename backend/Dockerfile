@@ -9,8 +9,6 @@ RUN mvn -B package -DskipTests -q
 # ---- Run stage ----
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/game-wiki-0.0.1-SNAPSHOT.jar app.jar
-RUN mkdir -p /var/app/uploads
-VOLUME /var/app/uploads
+COPY --from=build /app/target/juku-management-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-Xmx512m", "-Xms256m", "-jar", "app.jar", "--spring.profiles.active=prod"]

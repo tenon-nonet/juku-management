@@ -1,9 +1,6 @@
-# FROMDEX
+# 塾顧客管理システム
 
-ゲーム情報Wiki。
-情報を収集・整理するためのプラットフォームです。
-
-https://fromdex.com
+塾向けの顧客・授業・請求管理システム
 
 ---
 
@@ -13,8 +10,7 @@ https://fromdex.com
 |---|---|
 | フロントエンド | Vite + React + TypeScript + TailwindCSS v4 |
 | バックエンド | Spring Boot 3.2.5 (Java 21) + Spring Security + JWT |
-| データベース | PostgreSQL |
-| 本番インフラ | Docker Compose on さくらの VPS (Rocky Linux 8) |
+| データベース | PostgreSQL 16 |
 
 ---
 
@@ -22,135 +18,69 @@ https://fromdex.com
 
 ### 前提条件
 
-- Java 21
+- Java 21（`/opt/homebrew/opt/openjdk@21`）
 - Maven 3.x
-- Node.js 20+
-- PostgreSQL 15+
+- Node.js 22+
+- Docker（PostgreSQL用）
 
-### データベース作成
+### データベース起動
 
 ```bash
-psql -U postgres -c "CREATE DATABASE gamewiki;"
-psql -U postgres -d gamewiki -f db/init.sql
-
-過去のDB更新履歴をSQLファイルとして残しているが、現状はinit.sqlで一括作成可能
+docker compose -f docker-compose.local.yml up -d
 ```
 
-### バックエンド設定ファイル作成
-
-`backend/src/main/resources/application-local.properties` を作成（git 管理外）:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/gamewiki
-spring.datasource.username=postgres
-spring.datasource.password=admin
-
-jwt.secret=your-secret-key-here
-
-anthropic.api.key=your-anthropic-api-key-here
-```
-
----
-
-## 起動コマンド
-
-### バックエンド
+### バックエンド起動
 
 ```bash
 cd backend
+export JAVA_HOME="/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
 mvn spring-boot:run -Dspring-boot.run.profiles=local
-# http://localhost:8080
 ```
 
-### フロントエンド
+### フロントエンド起動
 
 ```bash
 cd frontend
 npm install
 npm run dev
-# http://localhost:5173
 ```
 
-### データベース接続
+ブラウザで `http://localhost:5173` を開く。
 
-```bash
-psql -U postgres -d gamewiki
-```
+### 初期ログイン
+
+| 項目 | 値 |
+|---|---|
+| ユーザー名 | admin |
+| パスワード | admin123 |
 
 ---
 
-## ブランチ
+## ブランチ戦略
 
 | ブランチ | 用途 |
 |---|---|
-| `main` | main branch|
-| `develop` | 開発作業 |
-| `release` | デプロイトリガー（GitHub Actions） |
-
-開発フロー: `develop` で開発 → PR → `release`にマージ -> GitHub Actionsデプロイトリガー
+| `main` | 本番リリース |
+| `develop` | 開発統合 |
 
 ---
 
 ## 本番デプロイ
 
-詳細は [DEPLOYMENT.md](DEPLOYMENT.md) を参照。
+`.env.production.example` をコピーして `.env` を作成し、値を設定後：
 
 ```bash
-# VPS 上での更新
-git pull origin release
-docker compose up -d --build
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ---
 
 ## 実装済み機能
 
-### コンテンツ管理
-- ゲーム一覧・詳細・CRUD（画像付き、ドラッグ並び替え）
-- アイテム一覧・詳細・CRUD（画像付き、タグ・ゲーム紐付け）
-- ボス一覧・詳細・CRUD（画像付き、タグ・ゲーム紐付け、ドロップアイテム）
-- NPC 一覧・詳細・CRUD（画像付き、タグ・ゲーム紐付け、ドロップアイテム）
-- セリフ・考察テキスト（ラベル付き複数エントリ）
-
-### タグ・フィルター
-- タグ管理（ITEM / BOSS / NPC タイプ別、ゲームごと、管理者のみ）
-- ゲーム・タグ・キーワードによる絞り込み（リアルタイム反映）
-- ボス/NPC タグ名をキーワードとした関連アイテム自動表示
-
-### コミュニケーション
-- アイテムへのコメント・考察投稿（投稿・編集・削除・いいね・返信）
-- 掲示板
-- 啓蒙ポイント（編集・投稿への貢献でポイント付与）
-- 編集承認フロー（管理者が差分確認・承認）
-- 通報機能
-
-### UI・UX
-- 黒赤アンバー基調のダークテーマ
-- レスポンシブレイアウト（モバイル対応）
-- アイテム・ボス・NPC カードのホバープレビュー
-- BGM・効果音システム
-- 相関図
-
-### AI 連携
-- 画像選択時に Anthropic API でテキスト自動抽出 → 説明欄入力
-
-### 管理者機能
-- 編集承認・差分確認
-- 通報管理
-- ユーザー管理・ロール変更
-- タグ管理
-
----
-
-## 実装予定
-
-- 編纂記録（編集履歴の全件表示）
-- タグクリックでそのタグのアイテム一覧へ遷移
-- ゲーム詳細ページの Wikipedia / 公式 / YouTube リンク
-- 画像透過処理
-- AI による自動相関図作成、説明文以外の情報の自動入力
-- 仮考察案（テキスト + 自由入力から考察の叩き台生成）
-- 関連ニュースの表示内容、UI変更
-- 投稿ポイントによる報酬追加
-- サイト内登録データ拡充
-- 簡易ゲーム機能（チュートリアル再現？）
+- 生徒・保護者管理（CRUD）
+- 授業スケジュール管理・出席記録
+- 成績管理（試験結果）
+- 請求書・支払い管理
+- お知らせ管理
+- スタッフ管理
+- ダッシュボード（集計表示）

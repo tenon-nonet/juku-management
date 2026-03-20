@@ -1,207 +1,163 @@
-export interface AuthResponse {
-  token: string
+export interface Staff {
+  id: number
   username: string
-  role: string
-  enlightenment: number
+  fullName: string
+  role: 'ADMIN' | 'STAFF'
+  isActive: boolean
+  createdAt: string
 }
 
-export interface Game {
+export interface Guardian {
+  id: number
+  fullName: string
+  fullNameKana?: string
+  phone: string
+  phoneSub?: string
+  email?: string
+  address?: string
+  memo?: string
+  createdAt: string
+}
+
+export interface Student {
+  id: number
+  fullName: string
+  fullNameKana?: string
+  birthDate?: string
+  grade: string
+  schoolName?: string
+  guardianId?: number
+  guardianName?: string
+  guardianPhone?: string
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
+  enrolledAt: string
+  leftAt?: string
+  memo?: string
+  createdAt: string
+}
+
+export interface Subject {
   id: number
   name: string
+  color: string
+  sortOrder: number
+}
+
+export interface Course {
+  id: number
+  name: string
+  subjectId?: number
+  subjectName?: string
+  subjectColor?: string
+  gradeTarget?: string
+  monthlyFee: number
+  description?: string
+  isActive: boolean
+}
+
+export interface StudentCourse {
+  id: number
+  studentId: number
+  courseId: number
+  courseName: string
+  subjectName?: string
+  monthlyFee: number
+  startedAt: string
+  endedAt?: string
+}
+
+export interface Lesson {
+  id: number
+  courseId: number
+  courseName: string
+  teacherId?: number
+  teacherName?: string
+  classroom?: string
+  scheduledAt: string
+  durationMin: number
+  status: 'SCHEDULED' | 'DONE' | 'CANCELLED'
+  note?: string
+}
+
+export interface Attendance {
+  id: number
+  lessonId: number
+  studentId: number
+  studentName: string
+  status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED'
+  note?: string
+}
+
+export interface ExamType {
+  id: number
+  name: string
+  sortOrder: number
+}
+
+export interface ExamResult {
+  id: number
+  studentId: number
+  studentName: string
+  subjectId: number
+  subjectName: string
+  subjectColor: string
+  examTypeId?: number
+  examTypeName?: string
+  examName: string
+  examDate: string
+  score: number
+  maxScore: number
+  rank?: number
+  totalStudents?: number
+  memo?: string
+}
+
+export interface InvoiceItem {
+  id: number
   description: string
-  imagePath: string | null
-  platforms: string | null
-  releaseDates: string | null
-  awards: string | null
-  staff: string | null
-  categories: string[] | null
-  visible: boolean
-  createdAt: string
-  updatedAt: string
+  amount: number
+  sortOrder: number
 }
 
-export interface Tag {
+export interface Invoice {
   id: number
-  name: string
-  gameId: number
-  type?: string
-  attribute?: string | null
+  studentId: number
+  studentName: string
+  billingMonth: string
+  totalAmount: number
+  dueDate: string
+  status: 'UNPAID' | 'PAID' | 'OVERDUE' | 'CANCELLED'
+  note?: string
+  issuedAt: string
+  items: InvoiceItem[]
 }
 
-export interface TagAttribute {
+export interface Payment {
   id: number
-  name: string
-  gameId: number
-}
-
-export interface Comment {
-  id: number
-  content: string
-  username: string
-  createdAt: string
-  likeCount: number
-  likedByMe: boolean
-  replies: Comment[]
-}
-
-export interface EditHistory {
-  id: number
-  entityType: 'ITEM' | 'BOSS' | 'NPC'
-  entityId: number
-  entityName: string
-  actionType: 'CREATE' | 'UPDATE'
-  gameName: string
+  invoiceId: number
+  paidAmount: number
+  paidAt: string
+  method: string
+  note?: string
+  recordedBy?: string
   createdAt: string
 }
 
-export interface MyComment {
+export interface Announcement {
   id: number
-  itemId: number
-  itemName: string
-  content: string
-  createdAt: string
-}
-
-export interface EditRequest {
-  id: number
-  entityType: 'ITEM' | 'BOSS' | 'NPC'
-  entityId: number | null
-  actionType: 'CREATE' | 'UPDATE'
-  status: 'PENDING' | 'APPROVED' | 'REJECTED'
-  requestedBy: string
-  reviewedBy: string | null
-  entityName: string | null
-  gameId: number | null
-  gameName: string | null
-  payload: Record<string, unknown> | null
-  pendingImagePath: string | null
-  reviewComment: string | null
-  reviewedAt: string | null
-  createdAt: string
-}
-
-export interface Report {
-  id: number
-  targetType: 'BOARD_THREAD' | 'BOARD_POST'
-  targetId: number
-  reason: string
-  reportedBy: string
-  targetAuthor: string | null
-  targetSummary: string | null
-  status: 'NEW' | 'CHECKING' | 'RESOLVED' | 'DISMISSED'
-  reviewedBy: string | null
-  createdAt: string
-  reviewedAt: string | null
-}
-
-export interface Ban {
-  id: number
-  authorKey: string
-  reason: string
-  createdBy: string
-  createdAt: string
-}
-
-export interface BoardGameSummary {
-  gameId: number
-  gameName: string
-  imagePath: string | null
-  threadCount: number
-  latestPostedAt: string | null
-}
-
-export interface BoardThreadSummary {
-  id: number
-  gameId: number | null
-  gameName: string
   title: string
   content: string
-  username: string
-  pinned: boolean
-  locked: boolean
-  replyCount: number
-  lastPostedAt: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface BoardPost {
-  id: number
-  content: string
-  username: string
-  createdAt: string
-  updatedAt: string
-}
-
-export interface BoardThreadDetail {
-  thread: BoardThreadSummary
-  posts: BoardPost[]
-}
-
-export interface Item {
-  id: number
-  name: string
-  description: string
-  imagePath: string | null
-  gameId: number
-  gameName: string
-  tags: Tag[]
-  category: string | null
-  createdAt: string
-  updatedAt: string
-  updatedBy: string | null
-}
-
-export interface DropItem {
-  id: number
-  name: string
-  imagePath: string | null
-}
-
-export interface Boss {
-  id: number
-  name: string
-  description: string
-  imagePath: string | null
-  gameId: number
-  gameName: string
-  tags: Tag[]
-  dialogues: string[]
-  dropItems: DropItem[]
-  createdAt: string
-  updatedAt: string
-  updatedBy: string | null
-}
-
-export interface CatalogEntry {
-  id: number
-  name: string
-  type: string
-  category: string | null
-  gameId: number
-  gameName: string
+  target: string
+  targetValue?: string
+  isPublished: boolean
+  publishedAt?: string
+  expiresAt?: string
+  createdBy?: string
   createdAt: string
 }
 
-export interface RelationGraph {
-  id: number
-  gameId: number
-  graphData: string | null
-  updatedBy: string | null
-  updatedAt: string | null
-}
-
-export interface Npc {
-  id: number
-  name: string
-  description: string
-  imagePath: string | null
-  gameId: number
-  gameName: string
-  tags: Tag[]
-  dialogues: string[]
-  dropItems: DropItem[]
-  createdAt: string
-  updatedAt: string
-  updatedBy: string | null
+export interface DashboardSummary {
+  activeStudents: number
+  todayLessons: number
+  unpaidInvoices: number
 }

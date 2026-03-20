@@ -1,0 +1,66 @@
+package com.juku.controller;
+
+import com.juku.dto.AttendanceResponse;
+import com.juku.dto.AttendanceUpdateRequest;
+import com.juku.dto.LessonRequest;
+import com.juku.dto.LessonResponse;
+import com.juku.service.AttendanceService;
+import com.juku.service.LessonService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/lessons")
+@RequiredArgsConstructor
+public class LessonController {
+
+    private final LessonService lessonService;
+    private final AttendanceService attendanceService;
+
+    @GetMapping
+    public ResponseEntity<List<LessonResponse>> findAll(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @RequestParam(required = false) Long courseId) {
+        return ResponseEntity.ok(lessonService.findByDateRange(from, to, courseId));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<LessonResponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(lessonService.findById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<LessonResponse> create(@Valid @RequestBody LessonRequest request) {
+        return ResponseEntity.ok(lessonService.create(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<LessonResponse> update(@PathVariable Long id, @Valid @RequestBody LessonRequest request) {
+        return ResponseEntity.ok(lessonService.update(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        lessonService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/attendances")
+    public ResponseEntity<List<AttendanceResponse>> getAttendances(@PathVariable Long id) {
+        return ResponseEntity.ok(attendanceService.findByLesson(id));
+    }
+
+    @PutMapping("/{id}/attendances")
+    public ResponseEntity<List<AttendanceResponse>> updateAttendances(
+            @PathVariable Long id,
+            @RequestBody AttendanceUpdateRequest request) {
+        return ResponseEntity.ok(attendanceService.bulkUpdate(id, request));
+    }
+}
