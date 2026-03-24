@@ -26,4 +26,7 @@ public class ExamResultRequest {
     private Integer rank;
     private Integer totalStudents;
     private String memo;
+    private Integer academicYear;
+    private Short semester; // 1, 2, 3
+    private String gradeAtExam;
 }

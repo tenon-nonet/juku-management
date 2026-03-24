@@ -142,3 +142,15 @@ export const importExamResultsCsv = (file: File) => {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }
+export const getStudentGradeTrend = (studentId: number, subjectId?: number) =>
+  api.get<any[]>(`/exam-results/analysis/trend/${studentId}`, { params: subjectId ? { subjectId } : {} })
+export const getSchoolDistribution = (schoolName: string, examName: string) =>
+  api.get<any>('/exam-results/analysis/distribution', { params: { schoolName, examName } })
+export const getExamNames = (studentId?: number) =>
+  api.get<string[]>('/exam-results/exam-names', { params: studentId ? { studentId } : {} })
+
+// Acceptance Records
+export const getAcceptanceRecords = (params?: { schoolId?: number; studentId?: number }) =>
+  api.get('/acceptance-records', { params })
+export const createAcceptanceRecord = (data: object) => api.post('/acceptance-records', data)
+export const deleteAcceptanceRecord = (id: number) => api.delete(`/acceptance-records/${id}`)

@@ -68,6 +68,9 @@ public class ExamResultService {
         r.setRank(req.getRank());
         r.setTotalStudents(req.getTotalStudents());
         r.setMemo(req.getMemo());
+        r.setAcademicYear(req.getAcademicYear());
+        r.setSemester(req.getSemester());
+        r.setGradeAtExam(req.getGradeAtExam());
         if (req.getExamTypeId() != null) {
             var examType = examTypeRepository.findById(req.getExamTypeId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "ExamType not found"));

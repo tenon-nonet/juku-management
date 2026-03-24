@@ -23,6 +23,9 @@ public class ExamResultResponse {
     private final Integer rank;
     private final Integer totalStudents;
     private final String memo;
+    private final Integer academicYear;
+    private final Short semester;
+    private final String gradeAtExam;
 
     public ExamResultResponse(ExamResult r) {
         this.id = r.getId();
@@ -40,5 +43,8 @@ public class ExamResultResponse {
         this.rank = r.getRank();
         this.totalStudents = r.getTotalStudents();
         this.memo = r.getMemo();
+        this.academicYear = r.getAcademicYear();
+        this.semester = r.getSemester();
+        this.gradeAtExam = r.getGradeAtExam();
     }
 }
