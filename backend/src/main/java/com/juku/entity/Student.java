@@ -53,6 +53,12 @@ public class Student {
     @Column(columnDefinition = "TEXT")
     private String memo;
 
+    @Column(unique = true, length = 50)
+    private String username;
+
+    @Column(length = 255)
+    private String password;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

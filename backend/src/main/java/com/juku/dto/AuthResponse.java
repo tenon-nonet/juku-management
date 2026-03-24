@@ -10,4 +10,6 @@ public class AuthResponse {
     private String username;
     private String role;
     private String fullName;
+    private Long userId;
+    private String userType; // STAFF, STUDENT, GUARDIAN
 }

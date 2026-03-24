@@ -51,6 +51,13 @@ public class ExamResult {
     @Column(columnDefinition = "TEXT")
     private String memo;
 
+    private Integer academicYear;
+
+    private Short semester; // 1=1学期, 2=2学期, 3=3学期
+
+    @Column(length = 20)
+    private String gradeAtExam; // 受験時の学年（例: 中1, 高2）
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 

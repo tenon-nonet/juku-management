@@ -54,6 +54,10 @@ public class Staff {
     private LocalDateTime updatedAt;
 
     public enum Role {
-        ADMIN, STAFF
+        PRINCIPAL,    // 教室長（全権限）
+        ADMIN,        // 管理者
+        TEACHER,      // 講師
+        OFFICE_STAFF, // 事務スタッフ
+        STAFF         // 一般スタッフ（後方互換）
     }
 }

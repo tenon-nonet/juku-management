@@ -2,7 +2,8 @@ import axios from 'axios'
 import type {
   Staff, Guardian, Student, Subject, Course, StudentCourse,
   Lesson, Attendance, ExamType, ExamResult,
-  Invoice, Payment, Announcement, DashboardSummary
+  Invoice, Payment, Announcement, DashboardSummary,
+  FeatureFlag, MessageThread, Message, TargetSchool, GradeImportResult
 } from './types'
 
 const api = axios.create({ baseURL: '/api' })
@@ -15,7 +16,7 @@ api.interceptors.request.use((config) => {
 
 // Auth
 export const login = (username: string, password: string) =>
-  api.post<{ token: string; username: string; role: string; fullName: string }>('/auth/login', { username, password })
+  api.post<{ token: string; username: string; role: string; fullName: string; userId: number | null; userType: string }>('/auth/login', { username, password })
 
 export const getMe = () =>
   api.get<Staff>('/auth/me')
@@ -110,3 +111,34 @@ export const deleteAnnouncement = (id: number) => api.delete(`/announcements/${i
 export const getDashboardSummary = () => api.get<DashboardSummary>('/dashboard/summary')
 export const getTodayLessons = () => api.get<Lesson[]>('/dashboard/today-lessons')
 export const getUnpaidInvoices = () => api.get<Invoice[]>('/dashboard/unpaid-invoices')
+
+// Feature Flags
+export const getFeatureFlags = () => api.get<FeatureFlag[]>('/feature-flags')
+export const updateFeatureFlag = (featureKey: string, enabled: boolean) =>
+  api.patch(`/feature-flags/${featureKey}`, { enabled })
+
+// Messages
+export const getMessageThreads = () => api.get<MessageThread[]>('/messages/threads')
+export const getMessageThread = (id: number) => api.get<MessageThread>(`/messages/threads/${id}`)
+export const createMessageThread = (data: { subject: string; category?: string; studentId?: number }) =>
+  api.post<MessageThread>('/messages/threads', data)
+export const getMessages = (threadId: number) => api.get<Message[]>(`/messages/threads/${threadId}/messages`)
+export const sendMessage = (threadId: number, content: string) =>
+  api.post<Message>(`/messages/threads/${threadId}/messages`, { content })
+export const getUnreadMessageCount = () => api.get<{ count: number }>('/messages/unread-count')
+
+// Target Schools
+export const getTargetSchools = (params?: { type?: string; name?: string }) =>
+  api.get<TargetSchool[]>('/target-schools', { params })
+export const createTargetSchool = (data: Partial<TargetSchool>) => api.post<TargetSchool>('/target-schools', data)
+export const updateTargetSchool = (id: number, data: Partial<TargetSchool>) => api.put<TargetSchool>(`/target-schools/${id}`, data)
+export const deleteTargetSchool = (id: number) => api.delete(`/target-schools/${id}`)
+
+// Grade Analysis
+export const importExamResultsCsv = (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  return api.post<GradeImportResult>('/exam-results/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}

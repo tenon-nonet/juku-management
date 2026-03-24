@@ -6,8 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StudentRepository extends JpaRepository<Student, Long> {
+
+    Optional<Student> findByUsername(String username);
 
     @Query("SELECT s FROM Student s WHERE " +
            "(:name IS NULL OR s.fullName LIKE %:name% OR s.fullNameKana LIKE %:name%) AND " +

@@ -2,7 +2,7 @@ export interface Staff {
   id: number
   username: string
   fullName: string
-  role: 'ADMIN' | 'STAFF'
+  role: 'PRINCIPAL' | 'ADMIN' | 'TEACHER' | 'OFFICE_STAFF' | 'STAFF'
   isActive: boolean
   memo?: string
   subjectIds: number[]
@@ -117,6 +117,9 @@ export interface ExamResult {
   rank?: number
   totalStudents?: number
   memo?: string
+  academicYear?: number
+  semester?: number
+  gradeAtExam?: string
 }
 
 export interface InvoiceItem {
@@ -167,4 +170,50 @@ export interface DashboardSummary {
   activeStudents: number
   todayLessons: number
   unpaidInvoices: number
+}
+
+export interface FeatureFlag {
+  id: number
+  featureKey: string
+  isEnabled: boolean
+  planLevel: string
+  description: string
+  updatedAt?: string
+}
+
+export interface MessageThread {
+  id: number
+  subject: string
+  category: string
+  status: string
+  studentId?: number
+  studentName?: string
+  createdByName?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Message {
+  id: number
+  threadId: number
+  content: string
+  senderType: string
+  senderName?: string
+  isRead: boolean
+  createdAt: string
+}
+
+export interface TargetSchool {
+  id: number
+  schoolName: string
+  schoolType: string
+  region?: string
+  difficulty?: number
+  memo?: string
+}
+
+export interface GradeImportResult {
+  successCount: number
+  errorCount: number
+  errors: string[]
 }

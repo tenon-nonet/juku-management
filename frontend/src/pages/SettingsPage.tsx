@@ -4,16 +4,20 @@ import {
   getSubjects, createSubject, updateSubject, deleteSubject,
   getCourses, createCourse, updateCourse, deleteCourse,
   getExamTypes, getStaff, createStaff, updateStaff, deleteStaff,
+  updateFeatureFlag,
 } from '../api'
-import type { Subject, Course, ExamType, Staff } from '../types'
+import type { Subject, Course, ExamType, Staff, FeatureFlag } from '../types'
+import { useFeatureFlags } from '../contexts/FeatureFlagContext'
+import { useAuth } from '../contexts/AuthContext'
 
-type Tab = 'subjects' | 'courses' | 'examTypes' | 'staff'
+type Tab = 'subjects' | 'courses' | 'examTypes' | 'staff' | 'featureFlags'
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'subjects', label: '科目' },
   { key: 'courses', label: 'コース' },
   { key: 'examTypes', label: 'テスト種別' },
   { key: 'staff', label: 'スタッフ' },
+  { key: 'featureFlags', label: '機能管理' },
 ]
 
 // ---- Subjects ----
@@ -254,9 +258,9 @@ function StaffTab() {
     if (!form.fullName || (!editId && !form.password)) { setError('必須項目を入力してください'); return }
     try {
       if (editId) {
-        await updateStaff(editId, { fullName: form.fullName, role: form.role as 'ADMIN' | 'STAFF', password: form.password || undefined, subjectIds: form.subjectIds, memo: form.memo || undefined })
+        await updateStaff(editId, { fullName: form.fullName, role: form.role as Staff['role'], password: form.password || undefined, subjectIds: form.subjectIds, memo: form.memo || undefined })
       } else {
-        await createStaff({ username: form.username, fullName: form.fullName, role: form.role as 'ADMIN' | 'STAFF', password: form.password, subjectIds: form.subjectIds, memo: form.memo || undefined })
+        await createStaff({ username: form.username, fullName: form.fullName, role: form.role as Staff['role'], password: form.password, subjectIds: form.subjectIds, memo: form.memo || undefined })
       }
       setForm({ username: '', fullName: '', role: 'STAFF', password: '', subjectIds: [], memo: '' }); setEditId(null); load()
     } catch { setError('保存に失敗しました') }
@@ -286,7 +290,10 @@ function StaffTab() {
             <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
               <option value="STAFF">スタッフ</option>
+              <option value="TEACHER">講師</option>
+              <option value="OFFICE_STAFF">事務</option>
               <option value="ADMIN">管理者</option>
+              <option value="PRINCIPAL">教室長</option>
             </select>
           </div>
           <div>
@@ -338,8 +345,8 @@ function StaffTab() {
               <tr key={s.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
                 <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{s.fullName}</td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'}`}>
-                    {s.role === 'ADMIN' ? '管理者' : 'スタッフ'}
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${['ADMIN', 'PRINCIPAL'].includes(s.role) ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : s.role === 'TEACHER' ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'}`}>
+                    {({ PRINCIPAL: '教室長', ADMIN: '管理者', TEACHER: '講師', OFFICE_STAFF: '事務', STAFF: 'スタッフ' } as Record<string, string>)[s.role] ?? s.role}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{s.subjectNames.join('、') || '-'}</td>
@@ -357,16 +364,86 @@ function StaffTab() {
   )
 }
 
+// ---- Feature Flags ----
+function FeatureFlagsTab() {
+  const { flagDetails, reload, loading } = useFeatureFlags()
+  const { isAdmin } = useAuth()
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  const planLevelColors: Record<string, string> = {
+    FREE: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+    BASIC: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+    STANDARD: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300',
+    PREMIUM: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
+  }
+
+  const handleToggle = async (flag: FeatureFlag) => {
+    if (!isAdmin()) return
+    setToggling(flag.featureKey)
+    try {
+      await updateFeatureFlag(flag.featureKey, !flag.isEnabled)
+      reload()
+    } finally {
+      setToggling(null)
+    }
+  }
+
+  if (loading) return <p className="text-sm text-gray-400 py-4">読み込み中...</p>
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+          <tr>
+            <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">機能</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">説明</th>
+            <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">プラン</th>
+            <th className="text-center px-4 py-3 font-medium text-gray-500 dark:text-gray-400">有効</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+          {flagDetails.map((flag) => (
+            <tr key={flag.featureKey} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+              <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100 font-mono text-xs">{flag.featureKey}</td>
+              <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{flag.description}</td>
+              <td className="px-4 py-3">
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${planLevelColors[flag.planLevel] ?? planLevelColors.FREE}`}>
+                  {flag.planLevel}
+                </span>
+              </td>
+              <td className="px-4 py-3 text-center">
+                <button
+                  onClick={() => handleToggle(flag)}
+                  disabled={toggling === flag.featureKey || !isAdmin()}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${flag.isEnabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                  title={isAdmin() ? (flag.isEnabled ? '無効にする' : '有効にする') : '管理者のみ変更可能'}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${flag.isEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                </button>
+              </td>
+            </tr>
+          ))}
+          {flagDetails.length === 0 && (
+            <tr>
+              <td colSpan={4} className="px-4 py-8 text-center text-gray-400">機能フラグが見つかりません</td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const [tab, setTab] = useState<Tab>('subjects')
 
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">設定</h1>
-      <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex gap-1 mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         {TABS.map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${tab === t.key ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}>
+            className={`px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${tab === t.key ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}>
             {t.label}
           </button>
         ))}
@@ -375,6 +452,7 @@ export default function SettingsPage() {
       {tab === 'courses' && <CoursesTab />}
       {tab === 'examTypes' && <ExamTypesTab />}
       {tab === 'staff' && <StaffTab />}
+      {tab === 'featureFlags' && <FeatureFlagsTab />}
     </div>
   )
 }
