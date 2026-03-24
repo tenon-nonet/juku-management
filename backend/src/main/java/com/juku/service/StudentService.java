@@ -3,8 +3,10 @@ package com.juku.service;
 import com.juku.dto.StudentRequest;
 import com.juku.dto.StudentResponse;
 import com.juku.entity.Guardian;
+import com.juku.entity.Staff;
 import com.juku.entity.Student;
 import com.juku.repository.GuardianRepository;
+import com.juku.repository.StaffRepository;
 import com.juku.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,7 @@ public class StudentService {
 
     private final StudentRepository studentRepository;
     private final GuardianRepository guardianRepository;
+    private final StaffRepository staffRepository;
 
     public List<StudentResponse> search(String name, String grade, String status) {
         Student.Status statusEnum = status != null ? Student.Status.valueOf(status) : null;
@@ -72,6 +75,13 @@ public class StudentService {
             s.setGuardian(guardian);
         } else {
             s.setGuardian(null);
+        }
+        if (req.getPrimaryTeacherId() != null) {
+            Staff teacher = staffRepository.findById(req.getPrimaryTeacherId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Teacher not found"));
+            s.setPrimaryTeacher(teacher);
+        } else {
+            s.setPrimaryTeacher(null);
         }
     }
 }

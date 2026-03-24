@@ -6,6 +6,7 @@ import com.juku.entity.Lesson;
 import com.juku.repository.CourseRepository;
 import com.juku.repository.LessonRepository;
 import com.juku.repository.StaffRepository;
+import com.juku.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,13 +22,11 @@ public class LessonService {
     private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
     private final StaffRepository staffRepository;
+    private final StudentRepository studentRepository;
 
-    public List<LessonResponse> findByDateRange(LocalDateTime from, LocalDateTime to, Long courseId) {
-        if (courseId != null) {
-            return lessonRepository.findByDateRangeAndCourse(from, to, courseId)
-                .stream().map(LessonResponse::new).toList();
-        }
-        return lessonRepository.findByDateRange(from, to).stream().map(LessonResponse::new).toList();
+    public List<LessonResponse> findByFilters(LocalDateTime from, LocalDateTime to, Long courseId, Long teacherId, Long studentId) {
+        return lessonRepository.findByFilters(from, to, courseId, teacherId, studentId)
+            .stream().map(LessonResponse::new).toList();
     }
 
     public LessonResponse findById(Long id) {
@@ -73,6 +72,13 @@ public class LessonService {
             l.setTeacher(teacher);
         } else {
             l.setTeacher(null);
+        }
+        if (req.getStudentId() != null) {
+            var student = studentRepository.findById(req.getStudentId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Student not found"));
+            l.setStudent(student);
+        } else {
+            l.setStudent(null);
         }
     }
 }

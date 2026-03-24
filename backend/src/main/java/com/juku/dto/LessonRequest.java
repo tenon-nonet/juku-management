@@ -12,6 +12,7 @@ public class LessonRequest {
     @NotNull
     private Long courseId;
     private Long teacherId;
+    private Long studentId;
     private String classroom;
     @NotNull
     private LocalDateTime scheduledAt;

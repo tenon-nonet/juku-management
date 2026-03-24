@@ -17,6 +17,7 @@ public class StudentRequest {
     private String grade;
     private String schoolName;
     private Long guardianId;
+    private Long primaryTeacherId;
     private String status;
     private LocalDate enrolledAt;
     private LocalDate leftAt;

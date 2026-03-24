@@ -17,6 +17,8 @@ public class StudentResponse {
     private final Long guardianId;
     private final String guardianName;
     private final String guardianPhone;
+    private final Long primaryTeacherId;
+    private final String primaryTeacherName;
     private final String status;
     private final LocalDate enrolledAt;
     private final LocalDate leftAt;
@@ -33,6 +35,8 @@ public class StudentResponse {
         this.guardianId = s.getGuardian() != null ? s.getGuardian().getId() : null;
         this.guardianName = s.getGuardian() != null ? s.getGuardian().getFullName() : null;
         this.guardianPhone = s.getGuardian() != null ? s.getGuardian().getPhone() : null;
+        this.primaryTeacherId = s.getPrimaryTeacher() != null ? s.getPrimaryTeacher().getId() : null;
+        this.primaryTeacherName = s.getPrimaryTeacher() != null ? s.getPrimaryTeacher().getFullName() : null;
         this.status = s.getStatus().name();
         this.enrolledAt = s.getEnrolledAt();
         this.leftAt = s.getLeftAt();

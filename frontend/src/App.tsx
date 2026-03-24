@@ -20,6 +20,7 @@ import InvoiceFormPage from './pages/InvoiceFormPage'
 import AnnouncementsPage from './pages/AnnouncementsPage'
 import AnnouncementFormPage from './pages/AnnouncementFormPage'
 import SettingsPage from './pages/SettingsPage'
+import StaffDetailPage from './pages/StaffDetailPage'
 
 export default function App() {
   return (
@@ -56,6 +57,7 @@ export default function App() {
           <Route path="announcements/new" element={<AnnouncementFormPage />} />
           <Route path="announcements/:id/edit" element={<AnnouncementFormPage />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="staff/:id" element={<StaffDetailPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

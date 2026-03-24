@@ -51,8 +51,8 @@ export default function LessonsPage() {
             <tr>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">日時</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">コース</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">生徒</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">担当</th>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">教室</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">時間</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">ステータス</th>
               <th className="px-4 py-3"></th>
@@ -71,8 +71,8 @@ export default function LessonsPage() {
                     <span className="ml-2 text-gray-500 dark:text-gray-400">{dt.getHours()}:{String(dt.getMinutes()).padStart(2, '0')}</span>
                   </td>
                   <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{l.courseName}</td>
+                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{l.studentName ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{l.teacherName ?? '-'}</td>
-                  <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{l.classroom ?? '-'}</td>
                   <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{l.durationMin}分</td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${LESSON_STATUS_COLOR[l.status]}`}>

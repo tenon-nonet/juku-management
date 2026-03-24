@@ -37,6 +37,10 @@ public class Student {
     @JoinColumn(name = "guardian_id")
     private Guardian guardian;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "primary_teacher_id")
+    private Staff primaryTeacher;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.ACTIVE;

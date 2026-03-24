@@ -22,6 +22,9 @@ export const getMe = () =>
 
 // Staff
 export const getStaff = () => api.get<Staff[]>('/staff')
+export const getStaffById = (id: number) => api.get<Staff>(`/staff/${id}`)
+export const getTeacherStudents = (id: number) => api.get<Student[]>(`/staff/${id}/students`)
+export const getTeacherLessons = (id: number) => api.get<Lesson[]>(`/staff/${id}/lessons`)
 export const createStaff = (data: Partial<Staff> & { password: string }) => api.post<Staff>('/staff', data)
 export const updateStaff = (id: number, data: Partial<Staff> & { password?: string }) => api.put<Staff>(`/staff/${id}`, data)
 export const deleteStaff = (id: number) => api.delete(`/staff/${id}`)
@@ -66,8 +69,8 @@ export const updateCourse = (id: number, data: Partial<Course>) => api.put<Cours
 export const deleteCourse = (id: number) => api.delete(`/courses/${id}`)
 
 // Lessons
-export const getLessons = (from: string, to: string, courseId?: number) =>
-  api.get<Lesson[]>('/lessons', { params: { from, to, ...(courseId ? { courseId } : {}) } })
+export const getLessons = (from: string, to: string, params?: { courseId?: number; teacherId?: number; studentId?: number }) =>
+  api.get<Lesson[]>('/lessons', { params: { from, to, ...params } })
 export const getLesson = (id: number) => api.get<Lesson>(`/lessons/${id}`)
 export const createLesson = (data: Partial<Lesson>) => api.post<Lesson>('/lessons', data)
 export const updateLesson = (id: number, data: Partial<Lesson>) => api.put<Lesson>(`/lessons/${id}`, data)

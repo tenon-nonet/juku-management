@@ -27,8 +27,10 @@ public class LessonController {
     public ResponseEntity<List<LessonResponse>> findAll(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
-            @RequestParam(required = false) Long courseId) {
-        return ResponseEntity.ok(lessonService.findByDateRange(from, to, courseId));
+            @RequestParam(required = false) Long courseId,
+            @RequestParam(required = false) Long teacherId,
+            @RequestParam(required = false) Long studentId) {
+        return ResponseEntity.ok(lessonService.findByFilters(from, to, courseId, teacherId, studentId));
     }
 
     @GetMapping("/{id}")

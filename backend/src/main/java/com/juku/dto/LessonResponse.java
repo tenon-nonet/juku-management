@@ -12,6 +12,8 @@ public class LessonResponse {
     private final String courseName;
     private final Long teacherId;
     private final String teacherName;
+    private final Long studentId;
+    private final String studentName;
     private final String classroom;
     private final LocalDateTime scheduledAt;
     private final int durationMin;
@@ -24,6 +26,8 @@ public class LessonResponse {
         this.courseName = l.getCourse().getName();
         this.teacherId = l.getTeacher() != null ? l.getTeacher().getId() : null;
         this.teacherName = l.getTeacher() != null ? l.getTeacher().getFullName() : null;
+        this.studentId = l.getStudent() != null ? l.getStudent().getId() : null;
+        this.studentName = l.getStudent() != null ? l.getStudent().getFullName() : null;
         this.classroom = l.getClassroom();
         this.scheduledAt = l.getScheduledAt();
         this.durationMin = l.getDurationMin();

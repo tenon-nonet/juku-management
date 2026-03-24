@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getStudent, createStudent, updateStudent, getGuardians } from '../api'
-import type { Guardian } from '../types'
+import { getStudent, createStudent, updateStudent, getGuardians, getStaff } from '../api'
+import type { Guardian, Staff } from '../types'
 
 const GRADES = ['小1','小2','小3','小4','小5','小6','中1','中2','中3','高1','高2','高3','浪人','その他']
 
@@ -10,14 +10,16 @@ export default function StudentFormPage() {
   const isEdit = !!id
   const navigate = useNavigate()
   const [guardians, setGuardians] = useState<Guardian[]>([])
+  const [staffList, setStaffList] = useState<Staff[]>([])
   const [form, setForm] = useState({
     fullName: '', fullNameKana: '', birthDate: '', grade: '中1',
-    schoolName: '', guardianId: '', status: 'ACTIVE', enrolledAt: '', memo: '',
+    schoolName: '', guardianId: '', primaryTeacherId: '', status: 'ACTIVE', enrolledAt: '', memo: '',
   })
   const [error, setError] = useState('')
 
   useEffect(() => {
     getGuardians().then((r) => setGuardians(r.data))
+    getStaff().then((r) => setStaffList(r.data))
     if (isEdit) {
       getStudent(Number(id)).then((r) => {
         const s = r.data
@@ -28,6 +30,7 @@ export default function StudentFormPage() {
           grade: s.grade,
           schoolName: s.schoolName ?? '',
           guardianId: s.guardianId ? String(s.guardianId) : '',
+          primaryTeacherId: s.primaryTeacherId ? String(s.primaryTeacherId) : '',
           status: s.status,
           enrolledAt: s.enrolledAt,
           memo: s.memo ?? '',
@@ -42,8 +45,10 @@ export default function StudentFormPage() {
     try {
       const data = {
         ...form,
-        guardianId: form.guardianId ? Number(form.guardianId) : null,
-        birthDate: form.birthDate || null,
+        guardianId: form.guardianId ? Number(form.guardianId) : undefined,
+        primaryTeacherId: form.primaryTeacherId ? Number(form.primaryTeacherId) : undefined,
+        birthDate: form.birthDate || undefined,
+        status: form.status as 'ACTIVE' | 'INACTIVE' | 'SUSPENDED',
       }
       if (isEdit) {
         await updateStudent(Number(id), data)
@@ -100,6 +105,14 @@ export default function StudentFormPage() {
               {guardians.map((g) => <option key={g.id} value={g.id}>{g.fullName}</option>)}
             </select>
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">担当講師</label>
+          <select value={form.primaryTeacherId} onChange={(e) => setForm({...form, primaryTeacherId: e.target.value})}
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+            <option value="">未設定</option>
+            {staffList.map((s) => <option key={s.id} value={s.id}>{s.fullName}</option>)}
+          </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

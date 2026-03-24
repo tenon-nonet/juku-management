@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getLesson, createLesson, updateLesson, getCourses, getStaff } from '../api'
-import type { Course, Staff } from '../types'
+import { getLesson, createLesson, updateLesson, getCourses, getStaff, getStudents } from '../api'
+import type { Course, Staff, Student } from '../types'
 
 export default function LessonFormPage() {
   const { id } = useParams()
@@ -9,14 +9,16 @@ export default function LessonFormPage() {
   const navigate = useNavigate()
   const [courses, setCourses] = useState<Course[]>([])
   const [staffList, setStaffList] = useState<Staff[]>([])
+  const [students, setStudents] = useState<Student[]>([])
   const [form, setForm] = useState({
-    courseId: '', teacherId: '', classroom: '', scheduledAt: '', durationMin: '60', status: 'SCHEDULED', note: ''
+    courseId: '', teacherId: '', studentId: '', classroom: '', scheduledAt: '', durationMin: '60', status: 'SCHEDULED', note: ''
   })
   const [error, setError] = useState('')
 
   useEffect(() => {
     getCourses(true).then((r) => setCourses(r.data))
     getStaff().then((r) => setStaffList(r.data))
+    getStudents({ status: 'ACTIVE' }).then((r) => setStudents(r.data))
     if (isEdit) {
       getLesson(Number(id)).then((r) => {
         const l = r.data
@@ -24,6 +26,7 @@ export default function LessonFormPage() {
         const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
         setForm({
           courseId: String(l.courseId), teacherId: l.teacherId ? String(l.teacherId) : '',
+          studentId: l.studentId ? String(l.studentId) : '',
           classroom: l.classroom ?? '', scheduledAt: local,
           durationMin: String(l.durationMin), status: l.status, note: l.note ?? ''
         })
@@ -37,12 +40,13 @@ export default function LessonFormPage() {
     try {
       const data = {
         courseId: Number(form.courseId),
-        teacherId: form.teacherId ? Number(form.teacherId) : null,
-        classroom: form.classroom || null,
+        teacherId: form.teacherId ? Number(form.teacherId) : undefined,
+        studentId: form.studentId ? Number(form.studentId) : undefined,
+        classroom: form.classroom || undefined,
         scheduledAt: form.scheduledAt,
         durationMin: Number(form.durationMin),
-        status: form.status,
-        note: form.note || null,
+        status: form.status as 'SCHEDULED' | 'DONE' | 'CANCELLED',
+        note: form.note || undefined,
       }
       if (isEdit) { await updateLesson(Number(id), data) } else { await createLesson(data) }
       navigate('/lessons')
@@ -83,10 +87,18 @@ export default function LessonFormPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">教室</label>
-            <input value={form.classroom} onChange={(e) => setForm({ ...form, classroom: e.target.value })}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">生徒（個別）</label>
+            <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })}
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              <option value="">未設定</option>
+              {students.map((s) => <option key={s.id} value={s.id}>{s.fullName}</option>)}
+            </select>
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">教室</label>
+          <input value={form.classroom} onChange={(e) => setForm({ ...form, classroom: e.target.value })}
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">ステータス</label>

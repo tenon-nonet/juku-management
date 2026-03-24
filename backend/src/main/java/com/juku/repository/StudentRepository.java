@@ -22,4 +22,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     long countByStatus(Student.Status status);
 
     List<Student> findByGuardianId(Long guardianId);
+
+    List<Student> findByPrimaryTeacherId(Long teacherId);
 }

@@ -89,6 +89,7 @@ export default function StudentDetailPage() {
               ['退塾日', student.leftAt ?? '-'],
               ['保護者', student.guardianName ?? '-'],
               ['保護者電話', student.guardianPhone ?? '-'],
+              ['担当講師', student.primaryTeacherName ?? '-'],
             ].map(([label, value]) => (
               <div key={label}>
                 <p className="text-gray-500 dark:text-gray-400">{label}</p>

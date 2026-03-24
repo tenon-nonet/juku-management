@@ -1,7 +1,9 @@
 package com.juku.controller;
 
+import com.juku.dto.LessonResponse;
 import com.juku.dto.StaffRequest;
 import com.juku.dto.StaffResponse;
+import com.juku.dto.StudentResponse;
 import com.juku.service.StaffService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +21,23 @@ public class StaffController {
     private final StaffService staffService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<StaffResponse>> findAll() {
         return ResponseEntity.ok(staffService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<StaffResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(staffService.findById(id));
+    }
+
+    @GetMapping("/{id}/students")
+    public ResponseEntity<List<StudentResponse>> getAssignedStudents(@PathVariable Long id) {
+        return ResponseEntity.ok(staffService.getAssignedStudents(id));
+    }
+
+    @GetMapping("/{id}/lessons")
+    public ResponseEntity<List<LessonResponse>> getUpcomingLessons(@PathVariable Long id) {
+        return ResponseEntity.ok(staffService.getUpcomingLessons(id));
     }
 
     @PostMapping

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   getSubjects, createSubject, updateSubject, deleteSubject,
   getCourses, createCourse, updateCourse, deleteCourse,
@@ -233,27 +234,35 @@ function ExamTypesTab() {
 // ---- Staff ----
 function StaffTab() {
   const [staffList, setStaffList] = useState<Staff[]>([])
-  const [form, setForm] = useState({ username: '', fullName: '', role: 'STAFF', password: '' })
+  const [subjects, setSubjects] = useState<Subject[]>([])
+  const [form, setForm] = useState({ username: '', fullName: '', role: 'STAFF', password: '', subjectIds: [] as number[], memo: '' })
   const [editId, setEditId] = useState<number | null>(null)
   const [error, setError] = useState('')
 
   const load = () => getStaff().then((r) => setStaffList(r.data))
-  useEffect(() => { load() }, [])
+  useEffect(() => { load(); getSubjects().then((r) => setSubjects(r.data)) }, [])
+
+  const toggleSubject = (id: number) => {
+    setForm((prev) => ({
+      ...prev,
+      subjectIds: prev.subjectIds.includes(id) ? prev.subjectIds.filter((x) => x !== id) : [...prev.subjectIds, id]
+    }))
+  }
 
   const handleSave = async () => {
     setError('')
     if (!form.fullName || (!editId && !form.password)) { setError('必須項目を入力してください'); return }
     try {
       if (editId) {
-        await updateStaff(editId, { fullName: form.fullName, role: form.role as 'ADMIN' | 'STAFF', password: form.password || undefined })
+        await updateStaff(editId, { fullName: form.fullName, role: form.role as 'ADMIN' | 'STAFF', password: form.password || undefined, subjectIds: form.subjectIds, memo: form.memo || undefined })
       } else {
-        await createStaff({ username: form.username, fullName: form.fullName, role: form.role as 'ADMIN' | 'STAFF', password: form.password })
+        await createStaff({ username: form.username, fullName: form.fullName, role: form.role as 'ADMIN' | 'STAFF', password: form.password, subjectIds: form.subjectIds, memo: form.memo || undefined })
       }
-      setForm({ username: '', fullName: '', role: 'STAFF', password: '' }); setEditId(null); load()
+      setForm({ username: '', fullName: '', role: 'STAFF', password: '', subjectIds: [], memo: '' }); setEditId(null); load()
     } catch { setError('保存に失敗しました') }
   }
 
-  const handleEdit = (s: Staff) => { setEditId(s.id); setForm({ username: s.username, fullName: s.fullName, role: s.role, password: '' }) }
+  const handleEdit = (s: Staff) => { setEditId(s.id); setForm({ username: s.username, fullName: s.fullName, role: s.role, password: '', subjectIds: s.subjectIds, memo: s.memo ?? '' }) }
   const handleDelete = async (id: number) => { if (!confirm('削除しますか？')) return; await deleteStaff(id); load() }
 
   return (
@@ -287,12 +296,30 @@ function StaffTab() {
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
           </div>
         </div>
+        {subjects.length > 0 && (
+          <div>
+            <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">担当科目</label>
+            <div className="flex gap-2 flex-wrap">
+              {subjects.map((sub) => (
+                <button key={sub.id} type="button" onClick={() => toggleSubject(sub.id)}
+                  className={`text-xs px-3 py-1 rounded-full border transition-colors ${form.subjectIds.includes(sub.id) ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-indigo-400'}`}>
+                  {sub.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <div>
+          <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">備考</label>
+          <input value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })}
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <div className="flex gap-2">
           <button onClick={handleSave} className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-indigo-700">
             {editId ? '更新' : '追加'}
           </button>
-          {editId && <button onClick={() => { setEditId(null); setForm({ username: '', fullName: '', role: 'STAFF', password: '' }) }}
+          {editId && <button onClick={() => { setEditId(null); setForm({ username: '', fullName: '', role: 'STAFF', password: '', subjectIds: [], memo: '' }) }}
             className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-4 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600">キャンセル</button>}
         </div>
       </div>
@@ -300,23 +327,24 @@ function StaffTab() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">ユーザー名</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">氏名</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">権限</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-gray-400">担当科目</th>
               <th className="px-4 py-3"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {staffList.map((s) => (
               <tr key={s.id} className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                <td className="px-4 py-3 text-gray-800 dark:text-gray-100">{s.username}</td>
                 <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{s.fullName}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.role === 'ADMIN' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'}`}>
                     {s.role === 'ADMIN' ? '管理者' : 'スタッフ'}
                   </span>
                 </td>
+                <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{s.subjectNames.join('、') || '-'}</td>
                 <td className="px-4 py-3 text-right">
+                  <Link to={`/staff/${s.id}`} className="text-gray-500 hover:underline text-xs mr-3">詳細</Link>
                   <button onClick={() => handleEdit(s)} className="text-indigo-600 hover:underline text-xs mr-3">編集</button>
                   <button onClick={() => handleDelete(s.id)} className="text-red-400 hover:underline text-xs">削除</button>
                 </td>

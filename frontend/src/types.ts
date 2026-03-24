@@ -4,6 +4,9 @@ export interface Staff {
   fullName: string
   role: 'ADMIN' | 'STAFF'
   isActive: boolean
+  memo?: string
+  subjectIds: number[]
+  subjectNames: string[]
   createdAt: string
 }
 
@@ -29,6 +32,8 @@ export interface Student {
   guardianId?: number
   guardianName?: string
   guardianPhone?: string
+  primaryTeacherId?: number
+  primaryTeacherName?: string
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED'
   enrolledAt: string
   leftAt?: string
@@ -72,6 +77,8 @@ export interface Lesson {
   courseName: string
   teacherId?: number
   teacherName?: string
+  studentId?: number
+  studentName?: string
   classroom?: string
   scheduledAt: string
   durationMin: number

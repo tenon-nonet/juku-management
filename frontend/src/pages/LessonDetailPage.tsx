@@ -21,9 +21,14 @@ export default function LessonDetailPage() {
 
   useEffect(() => {
     getLesson(lessonId).then((r) => {
-      setLesson(r.data)
-      // コースに紐づく生徒を取得（全生徒から）
-      getStudents({ status: 'ACTIVE' }).then((sr) => setStudents(sr.data))
+      const l = r.data
+      setLesson(l)
+      if (l.studentId) {
+        // 個別指導：紐づく生徒のみ
+        setStudents([{ id: l.studentId, fullName: l.studentName ?? '', grade: '', status: 'ACTIVE', enrolledAt: '', createdAt: '' }])
+      } else {
+        getStudents({ status: 'ACTIVE' }).then((sr) => setStudents(sr.data))
+      }
     })
     getLessonAttendances(lessonId).then((r) => {
       const map: Record<number, { status: string; note: string }> = {}
@@ -59,6 +64,7 @@ export default function LessonDetailPage() {
             {dt.getFullYear()}/{dt.getMonth() + 1}/{dt.getDate()} {dt.getHours()}:{String(dt.getMinutes()).padStart(2, '0')} ({lesson.durationMin}分)
             {lesson.classroom && ` / ${lesson.classroom}`}
             {lesson.teacherName && ` / ${lesson.teacherName}`}
+            {lesson.studentName && ` / ${lesson.studentName}`}
           </p>
         </div>
         <div className="flex gap-2">
