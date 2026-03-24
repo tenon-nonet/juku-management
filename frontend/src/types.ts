@@ -217,3 +217,133 @@ export interface GradeImportResult {
   errorCount: number
   errors: string[]
 }
+
+export interface Prospect {
+  id: number
+  fullName: string
+  fullNameKana?: string
+  phone?: string
+  email?: string
+  grade?: string
+  schoolName?: string
+  inquiryDate: string
+  trialDate?: string
+  status: 'INQUIRY' | 'TRIAL_SCHEDULED' | 'TRIAL_DONE' | 'ENROLLED' | 'DROPPED'
+  interestCourses?: string
+  referralSource?: string
+  memo?: string
+  assignedStaffId?: number
+  assignedStaffName?: string
+  enrolledStudentId?: number
+  createdAt: string
+}
+
+export interface LessonPack {
+  id: number
+  name: string
+  packType: 'REGULAR' | 'SUMMER' | 'WINTER' | 'SPRING' | 'CUSTOM'
+  totalSessions: number
+  price: number
+  subjectId?: number
+  subjectName?: string
+  validFrom?: string
+  validTo?: string
+  description?: string
+  isActive: boolean
+}
+
+export interface StudentLessonPack {
+  id: number
+  studentId: number
+  studentName: string
+  packId: number
+  packName: string
+  packType: string
+  purchasedAt: string
+  totalSessions: number
+  usedSessions: number
+  remainingSessions: number
+}
+
+export interface SalaryRecord {
+  id: number
+  staffId: number
+  staffName: string
+  salaryMonth: string
+  lessonCount: number
+  baseAmount: number
+  adjustment: number
+  totalAmount: number
+  note?: string
+  status: 'DRAFT' | 'CONFIRMED' | 'PAID'
+  updatedAt: string
+}
+
+export interface SalaryRule {
+  id: number
+  staffId: number
+  lessonType: string
+  amountPerLesson: number
+  effectiveFrom: string
+  effectiveTo?: string
+}
+
+export interface ConsultationRecord {
+  id: number
+  studentId: number
+  studentName: string
+  consultationDate: string
+  attendees?: string
+  content?: string
+  actionItems?: string
+  nextDate?: string
+  staffId?: number
+  staffName?: string
+}
+
+export interface AbsenceRequest {
+  id: number
+  studentId: number
+  studentName: string
+  lessonId?: number
+  lessonInfo?: string
+  absenceDate: string
+  reason?: string
+  wantsMakeup: boolean
+  status: 'PENDING' | 'CONFIRMED' | 'MAKEUP_SCHEDULED' | 'COMPLETED'
+  makeupLessonId?: number
+}
+
+export interface SalesAnalytics {
+  monthlyRevenue: Array<{
+    month: string
+    billedAmount: number
+    collectedAmount: number
+    uncollectedAmount: number
+    invoiceCount: number
+  }>
+  courseBreakdown: Array<{
+    courseName: string
+    studentCount: number
+    monthlyRevenue: number
+  }>
+  enrollmentTrend: Array<{
+    month: string
+    activeCount: number
+    newCount: number
+    leftCount: number
+  }>
+  staffLessonCounts: Array<{
+    staffId: number
+    staffName: string
+    lessonCount: number
+    doneCount: number
+  }>
+  summary: {
+    totalStudents: number
+    activeStudents: number
+    currentMonthRevenue: number
+    unpaidAmount: number
+    overdueAmount: number
+  }
+}

@@ -72,6 +72,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {isStaff && isEnabled('INVOICE_MANAGEMENT') && canSeeInvoices && navItem('/invoices', '請求・支払い', '💴')}
             {isStaff && isEnabled('ANNOUNCEMENT') && navItem('/announcements', 'お知らせ', '📢')}
             {isStaff && isEnabled('COMMUNICATION') && navItem('/messages', 'メッセージ', '💬')}
+            {isStaff && navItem('/prospects', '体験生管理', '🎯')}
+            {isStaff && navItem('/lesson-packs', '特別パック', '📦')}
+            {isStaff && navItem('/sales', '売上分析', '📈')}
+            {isAdmin() && navItem('/salary', '給与管理', '💰')}
 
             {/* Student portal */}
             {isStudent && (

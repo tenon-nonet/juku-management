@@ -30,4 +30,19 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     List<Lesson> findByStudentIdOrderByScheduledAtDesc(Long studentId);
 
     long countByScheduledAtBetween(LocalDateTime from, LocalDateTime to);
+
+    @Query("SELECT l FROM Lesson l WHERE l.scheduledAt BETWEEN :from AND :to ORDER BY l.scheduledAt ASC")
+    List<Lesson> findByDateRange(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    long countByTeacherIdAndStatusAndScheduledAtBetween(
+        Long teacherId, Lesson.Status status, LocalDateTime from, LocalDateTime to
+    );
+
+    @Query("SELECT l FROM Lesson l WHERE l.teacher.id = :teacherId " +
+           "AND l.status = 'DONE' AND l.scheduledAt BETWEEN :from AND :to")
+    List<Lesson> findDoneByTeacherAndPeriod(
+        @Param("teacherId") Long teacherId,
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
+    );
 }

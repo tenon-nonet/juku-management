@@ -3,7 +3,9 @@ import type {
   Staff, Guardian, Student, Subject, Course, StudentCourse,
   Lesson, Attendance, ExamType, ExamResult,
   Invoice, Payment, Announcement, DashboardSummary,
-  FeatureFlag, MessageThread, Message, TargetSchool, GradeImportResult
+  FeatureFlag, MessageThread, Message, TargetSchool, GradeImportResult,
+  Prospect, LessonPack, StudentLessonPack, SalaryRecord, SalaryRule,
+  ConsultationRecord, AbsenceRequest, SalesAnalytics
 } from './types'
 
 const api = axios.create({ baseURL: '/api' })
@@ -154,3 +156,59 @@ export const getAcceptanceRecords = (params?: { schoolId?: number; studentId?: n
   api.get('/acceptance-records', { params })
 export const createAcceptanceRecord = (data: object) => api.post('/acceptance-records', data)
 export const deleteAcceptanceRecord = (id: number) => api.delete(`/acceptance-records/${id}`)
+
+// Prospects（体験生・見込み客）
+export const getProspects = (params?: { status?: string; name?: string }) =>
+  api.get<Prospect[]>('/prospects', { params })
+export const getProspectStats = () => api.get<Record<string, number>>('/prospects/stats')
+export const getProspect = (id: number) => api.get<Prospect>(`/prospects/${id}`)
+export const createProspect = (data: Partial<Prospect>) => api.post<Prospect>('/prospects', data)
+export const updateProspect = (id: number, data: Partial<Prospect>) => api.put<Prospect>(`/prospects/${id}`, data)
+export const deleteProspect = (id: number) => api.delete(`/prospects/${id}`)
+
+// Lesson Packs（特別授業パック）
+export const getLessonPacks = (activeOnly = false) =>
+  api.get<LessonPack[]>('/lesson-packs', { params: { activeOnly } })
+export const getLessonPack = (id: number) => api.get<LessonPack>(`/lesson-packs/${id}`)
+export const createLessonPack = (data: Partial<LessonPack>) => api.post<LessonPack>('/lesson-packs', data)
+export const updateLessonPack = (id: number, data: Partial<LessonPack>) => api.put<LessonPack>(`/lesson-packs/${id}`, data)
+export const deleteLessonPack = (id: number) => api.delete(`/lesson-packs/${id}`)
+export const assignLessonPack = (packId: number, studentId: number, sessions?: number) =>
+  api.post<StudentLessonPack>(`/lesson-packs/${packId}/assign`, { studentId, sessions })
+export const getStudentLessonPacks = (studentId: number) =>
+  api.get<StudentLessonPack[]>(`/lesson-packs/student/${studentId}`)
+
+// Salary（給与管理）
+export const getSalaryMonths = () => api.get<string[]>('/salary/months')
+export const getSalaryByMonth = (month: string) => api.get<SalaryRecord[]>('/salary', { params: { month } })
+export const getSalaryByStaff = (staffId: number) => api.get<SalaryRecord[]>(`/salary/staff/${staffId}`)
+export const calculateSalary = (month: string) => api.post<SalaryRecord[]>('/salary/calculate', { month })
+export const updateSalaryRecord = (id: number, data: { status?: string; adjustment?: number; note?: string }) =>
+  api.patch<SalaryRecord>(`/salary/${id}`, data)
+export const getSalaryRules = (staffId: number) => api.get<SalaryRule[]>(`/salary/rules/${staffId}`)
+export const saveSalaryRule = (data: Partial<SalaryRule> & { staffId: number }) =>
+  api.post('/salary/rules', data)
+
+// Sales Analytics（売上分析）
+export const getSalesAnalytics = (months = 12) =>
+  api.get<SalesAnalytics>('/sales/analytics', { params: { months } })
+export const bulkGenerateInvoices = (month: string) =>
+  api.post<Invoice[]>('/sales/invoices/bulk-generate', { month })
+
+// Consultations（面談記録）
+export const getConsultations = (studentId: number) =>
+  api.get<ConsultationRecord[]>(`/consultations/student/${studentId}`)
+export const createConsultation = (data: Partial<ConsultationRecord>) =>
+  api.post<ConsultationRecord>('/consultations', data)
+export const updateConsultation = (id: number, data: Partial<ConsultationRecord>) =>
+  api.put<ConsultationRecord>(`/consultations/${id}`, data)
+export const deleteConsultation = (id: number) => api.delete(`/consultations/${id}`)
+
+// Absence Requests（欠席連絡）
+export const getPendingAbsences = () => api.get<AbsenceRequest[]>('/absence-requests/pending')
+export const getStudentAbsences = (studentId: number) =>
+  api.get<AbsenceRequest[]>(`/absence-requests/student/${studentId}`)
+export const createAbsenceRequest = (data: Partial<AbsenceRequest>) =>
+  api.post<AbsenceRequest>('/absence-requests', data)
+export const updateAbsenceStatus = (id: number, status: string, makeupLessonId?: number) =>
+  api.patch<AbsenceRequest>(`/absence-requests/${id}`, { status, makeupLessonId })

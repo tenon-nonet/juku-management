@@ -27,6 +27,10 @@ import MessagesPage from './pages/MessagesPage'
 import MessageThreadPage from './pages/MessageThreadPage'
 import StudentPortalPage from './pages/portal/StudentPortalPage'
 import GuardianPortalPage from './pages/portal/GuardianPortalPage'
+import SalesPage from './pages/SalesPage'
+import ProspectsPage from './pages/ProspectsPage'
+import LessonPacksPage from './pages/LessonPacksPage'
+import SalaryPage from './pages/SalaryPage'
 
 export default function App() {
   return (
@@ -74,6 +78,11 @@ export default function App() {
                 {/* Messages - all authenticated users */}
                 <Route path="messages" element={<MessagesPage />} />
                 <Route path="messages/:id" element={<MessageThreadPage />} />
+                {/* New features */}
+                <Route path="prospects" element={<ProspectsPage />} />
+                <Route path="lesson-packs" element={<LessonPacksPage />} />
+                <Route path="sales" element={<SalesPage />} />
+                <Route path="salary" element={<SalaryPage />} />
                 {/* Portals */}
                 <Route path="portal/student" element={
                   <PrivateRoute roles={['STUDENT']}>
