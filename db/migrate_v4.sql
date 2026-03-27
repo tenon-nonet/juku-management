@@ -1,4 +1,4 @@
--- migrate_v4.sql: タスク管理テーブル追加
+-- migrate_v4.sql: タスク管理・来年度計画テーブル追加
 
 CREATE TABLE IF NOT EXISTS tasks (
     id BIGSERIAL PRIMARY KEY,
@@ -10,4 +10,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     assignee_id BIGINT REFERENCES staff(id) ON DELETE SET NULL,
     created_by BIGINT REFERENCES staff(id) ON DELETE SET NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS next_year_plans (
+    target_year INT PRIMARY KEY,
+    plan_json JSONB NOT NULL,
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

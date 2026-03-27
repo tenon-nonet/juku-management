@@ -33,6 +33,7 @@ import LessonPacksPage from './pages/LessonPacksPage'
 import SalaryPage from './pages/SalaryPage'
 import AbsenceRequestsPage from './pages/AbsenceRequestsPage'
 import TasksPage from './pages/TasksPage'
+import NextYearPlanPage from './pages/NextYearPlanPage'
 
 export default function App() {
   return (
@@ -87,6 +88,7 @@ export default function App() {
                 <Route path="salary" element={<SalaryPage />} />
                 <Route path="absence-requests" element={<AbsenceRequestsPage />} />
                 <Route path="tasks" element={<TasksPage />} />
+                <Route path="next-year-plan" element={<NextYearPlanPage />} />
                 {/* Portals */}
                 <Route path="portal/student" element={
                   <PrivateRoute roles={['STUDENT']}>

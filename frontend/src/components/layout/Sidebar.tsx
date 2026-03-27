@@ -78,6 +78,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             {isStaff && navItem('/tasks', 'タスク管理', '✅')}
             {isStaff && navItem('/sales', '売上分析', '📈')}
             {isAdmin() && navItem('/salary', '給与管理', '💰')}
+            {isAdmin() && navItem('/next-year-plan', '来年度計画', '📆')}
 
             {/* Student portal */}
             {isStudent && (

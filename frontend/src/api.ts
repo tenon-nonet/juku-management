@@ -204,6 +204,10 @@ export const updateConsultation = (id: number, data: Partial<ConsultationRecord>
   api.put<ConsultationRecord>(`/consultations/${id}`, data)
 export const deleteConsultation = (id: number) => api.delete(`/consultations/${id}`)
 
+// Next Year Plan（来年度計画）
+export const getNextYearPlan = (year: number) => api.get(`/next-year-plan/${year}`)
+export const saveNextYearPlan = (data: object) => api.post('/next-year-plan', data)
+
 // Tasks（タスク管理）
 export const getTasks = (status?: string) =>
   api.get<Task[]>('/tasks', { params: status ? { status } : {} })
