@@ -347,3 +347,15 @@ export interface SalesAnalytics {
     overdueAmount: number
   }
 }
+
+export interface Task {
+  id: number
+  title: string
+  description?: string
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED'
+  dueDate?: string
+  assigneeId?: number
+  assigneeName?: string
+  createdAt: string
+}

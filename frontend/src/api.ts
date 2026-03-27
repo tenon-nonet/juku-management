@@ -5,7 +5,7 @@ import type {
   Invoice, Payment, Announcement, DashboardSummary,
   FeatureFlag, MessageThread, Message, TargetSchool, GradeImportResult,
   Prospect, LessonPack, StudentLessonPack, SalaryRecord, SalaryRule,
-  ConsultationRecord, AbsenceRequest, SalesAnalytics
+  ConsultationRecord, AbsenceRequest, SalesAnalytics, Task
 } from './types'
 
 const api = axios.create({ baseURL: '/api' })
@@ -203,6 +203,13 @@ export const createConsultation = (data: Partial<ConsultationRecord>) =>
 export const updateConsultation = (id: number, data: Partial<ConsultationRecord>) =>
   api.put<ConsultationRecord>(`/consultations/${id}`, data)
 export const deleteConsultation = (id: number) => api.delete(`/consultations/${id}`)
+
+// Tasks（タスク管理）
+export const getTasks = (status?: string) =>
+  api.get<Task[]>('/tasks', { params: status ? { status } : {} })
+export const createTask = (data: Partial<Task>) => api.post<Task>('/tasks', data)
+export const updateTask = (id: number, data: Partial<Task>) => api.put<Task>(`/tasks/${id}`, data)
+export const deleteTask = (id: number) => api.delete(`/tasks/${id}`)
 
 // Absence Requests（欠席連絡）
 export const getPendingAbsences = () => api.get<AbsenceRequest[]>('/absence-requests/pending')
