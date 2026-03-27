@@ -1,31 +1,34 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getDashboardSummary, getTodayLessons, getUnpaidInvoices } from '../api'
-import type { DashboardSummary, Lesson, Invoice } from '../types'
+import { getDashboardSummary, getTodayLessons, getUnpaidInvoices, getPendingAbsences } from '../api'
+import type { DashboardSummary, Lesson, Invoice, AbsenceRequest } from '../types'
 import { INVOICE_STATUS_COLOR, INVOICE_STATUS_LABEL } from '../constants'
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null)
   const [todayLessons, setTodayLessons] = useState<Lesson[]>([])
   const [unpaidInvoices, setUnpaidInvoices] = useState<Invoice[]>([])
+  const [pendingAbsences, setPendingAbsences] = useState<AbsenceRequest[]>([])
 
   useEffect(() => {
     getDashboardSummary().then((r) => setSummary(r.data))
     getTodayLessons().then((r) => setTodayLessons(r.data))
     getUnpaidInvoices().then((r) => setUnpaidInvoices(r.data))
+    getPendingAbsences().then((r) => setPendingAbsences(r.data))
   }, [])
 
   const cards = summary ? [
-    { label: '在籍生徒数', value: summary.activeStudents, unit: '名', color: 'text-indigo-600', link: '/students' },
-    { label: '本日の授業', value: summary.todayLessons, unit: '件', color: 'text-blue-600', link: '/lessons' },
-    { label: '未入金請求', value: summary.unpaidInvoices, unit: '件', color: 'text-red-600', link: '/invoices' },
+    { label: '在籍生徒数', value: summary.activeStudents, unit: '名', color: 'text-indigo-600 dark:text-indigo-400', link: '/students' },
+    { label: '本日の授業', value: summary.todayLessons, unit: '件', color: 'text-blue-600 dark:text-blue-400', link: '/lessons' },
+    { label: '未入金請求', value: summary.unpaidInvoices, unit: '件', color: 'text-red-600 dark:text-red-400', link: '/invoices' },
+    { label: '未処理の欠席', value: pendingAbsences.filter(a => a.status === 'PENDING').length, unit: '件', color: 'text-yellow-600 dark:text-yellow-400', link: '/absence-requests' },
   ] : []
 
   return (
     <div>
       <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6">ダッシュボード</h1>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         {cards.map((c) => (
           <Link key={c.label} to={c.link} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 hover:shadow-md transition-shadow">
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{c.label}</p>

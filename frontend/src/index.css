@@ -17,3 +17,18 @@ body,
     font-size: 18px;
   }
 }
+
+@media print {
+  aside, nav, header, .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .dark * {
+    background: white !important;
+    color: black !important;
+    border-color: #ccc !important;
+  }
+}
