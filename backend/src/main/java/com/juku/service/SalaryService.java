@@ -25,7 +25,7 @@ public class SalaryService {
     private final LessonRepository lessonRepository;
 
     public List<SalaryRecordResponse> getByMonth(String month) {
-        return recordRepository.findBySalaryMonthOrderByStaffFullNameAsc(month)
+        return recordRepository.findBySalaryMonth(month)
                 .stream().map(SalaryRecordResponse::new).toList();
     }
 
@@ -98,7 +98,7 @@ public class SalaryService {
     public SalaryRecordResponse updateStatus(Long id, String status, Integer adjustment, String note) {
         SalaryRecord rec = recordRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        rec.setStatus(SalaryRecord.Status.valueOf(status));
+        if (status != null) rec.setStatus(SalaryRecord.Status.valueOf(status));
         if (adjustment != null) {
             rec.setAdjustment(adjustment);
             rec.setTotalAmount(rec.getBaseAmount() + adjustment);

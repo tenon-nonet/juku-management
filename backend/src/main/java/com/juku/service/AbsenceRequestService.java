@@ -21,6 +21,12 @@ public class AbsenceRequestService {
     private final StudentRepository studentRepository;
     private final LessonRepository lessonRepository;
 
+    public List<AbsenceRequestDto> findAll() {
+        return repo.findAll(org.springframework.data.domain.Sort.by(
+                org.springframework.data.domain.Sort.Direction.DESC, "absenceDate"))
+                .stream().map(AbsenceRequestDto::new).toList();
+    }
+
     public List<AbsenceRequestDto> findByStudent(Long studentId) {
         return repo.findByStudentIdOrderByAbsenceDateDesc(studentId)
                 .stream().map(AbsenceRequestDto::new).toList();

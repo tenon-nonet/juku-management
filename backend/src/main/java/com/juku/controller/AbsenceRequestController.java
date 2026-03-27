@@ -15,6 +15,11 @@ public class AbsenceRequestController {
 
     private final AbsenceRequestService absenceRequestService;
 
+    @GetMapping
+    public List<AbsenceRequestDto> all() {
+        return absenceRequestService.findAll();
+    }
+
     @GetMapping("/pending")
     public List<AbsenceRequestDto> pending() {
         return absenceRequestService.findPending();

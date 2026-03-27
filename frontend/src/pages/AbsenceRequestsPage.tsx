@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getPendingAbsences, updateAbsenceStatus, getStudents, createAbsenceRequest } from '../api'
+import { getPendingAbsences, getAllAbsenceRequests, updateAbsenceStatus, getStudents, createAbsenceRequest } from '../api'
 import type { AbsenceRequest, Student } from '../types'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -31,8 +31,12 @@ export default function AbsenceRequestsPage() {
   const [form, setForm] = useState(emptyForm())
 
   const load = async () => {
-    const r = await getPendingAbsences()
-    setPending(r.data)
+    const [pendingRes, allRes] = await Promise.all([
+      getPendingAbsences(),
+      getAllAbsenceRequests(),
+    ])
+    setPending(pendingRes.data)
+    setAllRequests(allRes.data)
   }
 
   useEffect(() => {
@@ -83,7 +87,9 @@ export default function AbsenceRequestsPage() {
           <input type="checkbox" checked={showAll} onChange={e => setShowAll(e.target.checked)} className="rounded" />
           全件表示（処理済み含む）
         </label>
-        <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">{pending.length}件の未処理</span>
+        <span className="ml-auto text-sm text-gray-500 dark:text-gray-400">
+          {showAll ? `全${allRequests.length}件` : `${pending.length}件の未処理`}
+        </span>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-x-auto">
@@ -96,12 +102,12 @@ export default function AbsenceRequestsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {pending.length === 0 && (
+            {displayed.length === 0 && (
               <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-                未処理の欠席連絡はありません
+                {showAll ? '欠席連絡はありません' : '未処理の欠席連絡はありません'}
               </td></tr>
             )}
-            {pending.map(r => (
+            {displayed.map(r => (
               <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{r.studentName}</td>
                 <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{r.absenceDate}</td>

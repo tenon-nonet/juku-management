@@ -216,6 +216,7 @@ export const updateTask = (id: number, data: Partial<Task>) => api.put<Task>(`/t
 export const deleteTask = (id: number) => api.delete(`/tasks/${id}`)
 
 // Absence Requests（欠席連絡）
+export const getAllAbsenceRequests = () => api.get<AbsenceRequest[]>('/absence-requests')
 export const getPendingAbsences = () => api.get<AbsenceRequest[]>('/absence-requests/pending')
 export const getStudentAbsences = (studentId: number) =>
   api.get<AbsenceRequest[]>(`/absence-requests/student/${studentId}`)
