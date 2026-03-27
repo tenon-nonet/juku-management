@@ -198,14 +198,21 @@ export default function StudentDetailPage() {
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 dark:border-gray-700"><tr>
               <th className="text-left pb-2">日時</th>
+              <th className="text-left pb-2">コース</th>
               <th className="text-left pb-2">ステータス</th>
               <th className="text-left pb-2">メモ</th>
             </tr></thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {attendances.length === 0 && <tr><td colSpan={3} className="py-4 text-center text-gray-500 dark:text-gray-400">記録なし</td></tr>}
+              {attendances.length === 0 && <tr><td colSpan={4} className="py-4 text-center text-gray-500 dark:text-gray-400">記録なし</td></tr>}
               {attendances.map((a) => (
                 <tr key={a.id}>
-                  <td className="py-2">{a.lessonId}</td>
+                  <td className="py-2 text-gray-600 dark:text-gray-300">
+                    {a.lessonScheduledAt
+                      ? new Date(a.lessonScheduledAt).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' })
+                        + ' ' + new Date(a.lessonScheduledAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+                      : '-'}
+                  </td>
+                  <td className="py-2 text-gray-700 dark:text-gray-200">{a.lessonCourseName ?? '-'}</td>
                   <td className={`py-2 font-medium ${ATTEND_COLOR[a.status]}`}>{ATTEND_LABEL[a.status]}</td>
                   <td className="py-2 text-gray-500 dark:text-gray-400">{a.note ?? '-'}</td>
                 </tr>

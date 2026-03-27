@@ -24,7 +24,10 @@ public class InvoiceService {
     private final StudentCourseRepository studentCourseRepository;
 
     public List<InvoiceResponse> search(String month, String status, Long studentId) {
-        Invoice.Status statusEnum = status != null ? Invoice.Status.valueOf(status) : null;
+        Invoice.Status statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            try { statusEnum = Invoice.Status.valueOf(status); } catch (IllegalArgumentException ignored) {}
+        }
         return invoiceRepository.search(month, statusEnum, studentId)
             .stream().map(InvoiceResponse::new).toList();
     }
@@ -94,7 +97,7 @@ public class InvoiceService {
     public void updateStatus(Long id, String status) {
         Invoice inv = invoiceRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        inv.setStatus(Invoice.Status.valueOf(status));
+        if (status != null) inv.setStatus(Invoice.Status.valueOf(status));
         invoiceRepository.save(inv);
     }
 

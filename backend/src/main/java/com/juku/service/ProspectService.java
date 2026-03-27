@@ -25,7 +25,10 @@ public class ProspectService {
     private final StudentRepository studentRepository;
 
     public List<ProspectResponse> search(String status, String name) {
-        Prospect.Status statusEnum = status != null ? Prospect.Status.valueOf(status) : null;
+        Prospect.Status statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            try { statusEnum = Prospect.Status.valueOf(status); } catch (IllegalArgumentException ignored) {}
+        }
         return prospectRepository.search(statusEnum, name)
                 .stream().map(ProspectResponse::new).toList();
     }

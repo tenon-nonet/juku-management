@@ -44,7 +44,7 @@ export default function NextYearPlanPage() {
 
       const initPlans: Record<number, CoursePlan> = {}
       cs.forEach(c => {
-        const currentCount = sts.filter(s => s.primaryTeacherId != null).length // rough estimate
+        const currentCount = 0 // 実際の受講者数はコース別に別途取得が必要
         initPlans[c.id] = {
           courseId: c.id,
           courseName: c.name,

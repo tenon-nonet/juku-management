@@ -93,6 +93,8 @@ export interface Attendance {
   studentName: string
   status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED'
   note?: string
+  lessonScheduledAt?: string
+  lessonCourseName?: string
 }
 
 export interface ExamType {
