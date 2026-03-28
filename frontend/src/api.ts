@@ -78,6 +78,10 @@ export const getLesson = (id: number) => api.get<Lesson>(`/lessons/${id}`)
 export const createLesson = (data: Partial<Lesson>) => api.post<Lesson>('/lessons', data)
 export const updateLesson = (id: number, data: Partial<Lesson>) => api.put<Lesson>(`/lessons/${id}`, data)
 export const deleteLesson = (id: number) => api.delete(`/lessons/${id}`)
+export const rescheduleLesson = (id: number, scheduledAt: string) =>
+  api.patch<Lesson>(`/lessons/${id}/reschedule`, { scheduledAt })
+export const bulkCreateLessons = (data: Partial<Lesson>, repeatWeeks: number) =>
+  api.post<Lesson[]>('/lessons/bulk', data, { params: { repeatWeeks } })
 export const getLessonAttendances = (id: number) => api.get<Attendance[]>(`/lessons/${id}/attendances`)
 export const updateAttendances = (id: number, attendances: { studentId: number; status: string; note?: string }[]) =>
   api.put<Attendance[]>(`/lessons/${id}/attendances`, { attendances })

@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -48,6 +49,28 @@ public class LessonService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         applyRequest(l, req);
         return new LessonResponse(lessonRepository.save(l));
+    }
+
+    @Transactional
+    public LessonResponse reschedule(Long id, LocalDateTime scheduledAt) {
+        Lesson l = lessonRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        l.setScheduledAt(scheduledAt);
+        return new LessonResponse(lessonRepository.save(l));
+    }
+
+    @Transactional
+    public List<LessonResponse> bulkCreate(LessonRequest req, int repeatWeeks) {
+        int weeks = Math.max(1, Math.min(repeatWeeks, 52));
+        LocalDateTime base = req.getScheduledAt();
+        List<LessonResponse> results = new ArrayList<>();
+        for (int w = 0; w < weeks; w++) {
+            req.setScheduledAt(base.plusWeeks(w));
+            Lesson l = new Lesson();
+            applyRequest(l, req);
+            results.add(new LessonResponse(lessonRepository.save(l)));
+        }
+        return results;
     }
 
     public void delete(Long id) {

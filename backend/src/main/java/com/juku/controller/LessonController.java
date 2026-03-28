@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/lessons")
@@ -46,6 +47,21 @@ public class LessonController {
     @PutMapping("/{id}")
     public ResponseEntity<LessonResponse> update(@PathVariable Long id, @Valid @RequestBody LessonRequest request) {
         return ResponseEntity.ok(lessonService.update(id, request));
+    }
+
+    @PatchMapping("/{id}/reschedule")
+    public ResponseEntity<LessonResponse> reschedule(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        LocalDateTime scheduledAt = LocalDateTime.parse(body.get("scheduledAt"));
+        return ResponseEntity.ok(lessonService.reschedule(id, scheduledAt));
+    }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<List<LessonResponse>> bulkCreate(
+            @Valid @RequestBody LessonRequest request,
+            @RequestParam(defaultValue = "1") int repeatWeeks) {
+        return ResponseEntity.ok(lessonService.bulkCreate(request, repeatWeeks));
     }
 
     @DeleteMapping("/{id}")
