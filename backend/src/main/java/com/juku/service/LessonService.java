@@ -87,6 +87,10 @@ public class LessonService {
     public LessonResponse reschedule(Long id, LocalDateTime scheduledAt) {
         Lesson l = lessonRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        // キャンセル済みはブースチェック不要
+        if (l.getStatus() != Lesson.Status.CANCELLED) {
+            checkBoothCapacity(scheduledAt, scheduledAt.plusMinutes(Math.max(l.getDurationMin(), 1)), id);
+        }
         l.setScheduledAt(scheduledAt);
         return new LessonResponse(lessonRepository.save(l));
     }
@@ -95,16 +99,21 @@ public class LessonService {
     public List<LessonResponse> bulkCreate(LessonRequest req, int repeatWeeks) {
         int weeks = Math.max(1, Math.min(repeatWeeks, 52));
         LocalDateTime base = req.getScheduledAt();
+        int duration = Math.max(req.getDurationMin(), 1);
         List<LessonResponse> results = new ArrayList<>();
         for (int w = 0; w < weeks; w++) {
-            req.setScheduledAt(base.plusWeeks(w));
+            LocalDateTime slotStart = base.plusWeeks(w);
+            checkBoothCapacity(slotStart, slotStart.plusMinutes(duration), null);
+            // リクエストオブジェクトを変更せず新しいインスタンスに適用
             Lesson l = new Lesson();
+            req.setScheduledAt(slotStart);
             applyRequest(l, req);
             results.add(new LessonResponse(lessonRepository.save(l)));
         }
         return results;
     }
 
+    @Transactional
     public void delete(Long id) {
         if (!lessonRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);

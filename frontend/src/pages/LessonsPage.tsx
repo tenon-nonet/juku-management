@@ -549,7 +549,8 @@ function LessonModal({ initial, courses, teachers, students, allLessons, maxBoot
     const start = new Date(form.scheduledAt)
     if (isNaN(start.getTime())) return null
     const end = new Date(start.getTime() + form.durationMin * 60_000)
-    const others = allLessons.filter(l => l.status !== 'CANCELLED' && (!isNew || l.id !== form.id))
+    // 新規: 全件対象 / 編集中: 自身を除外
+    const others = allLessons.filter(l => l.status !== 'CANCELLED' && (isNew || l.id !== form.id))
     const concurrent = others.filter(l => {
       const s = new Date(l.scheduledAt)
       const e = new Date(s.getTime() + l.durationMin * 60_000)
@@ -740,7 +741,9 @@ export default function LessonsPage() {
     getLessons(from.toISOString(), to.toISOString(), {
       teacherId: filterTeacherId ? Number(filterTeacherId) : undefined,
       courseId: filterCourseId ? Number(filterCourseId) : undefined,
-    }).then(r => { setLessons(r.data); setLoading(false) })
+    }).then(r => setLessons(r.data))
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [getRange, filterTeacherId, filterCourseId])
 
   useEffect(() => { fetchLessons() }, [fetchLessons])
@@ -773,8 +776,13 @@ export default function LessonsPage() {
 
   // DnD reschedule
   const handleReschedule = async (lessonId: number, newTime: Date) => {
-    await rescheduleLesson(lessonId, toLocalISOString(newTime))
-    fetchLessons()
+    try {
+      await rescheduleLesson(lessonId, toLocalISOString(newTime))
+      fetchLessons()
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? 'ブースが満員のため移動できません'
+      alert(msg)
+    }
   }
 
   // Slot click → open create modal
@@ -818,32 +826,45 @@ export default function LessonsPage() {
       status: data.status,
       note: data.note || undefined,
     }
-    if (isNew) {
-      if (data.repeatWeeks > 1) {
-        await bulkCreateLessons(payload, data.repeatWeeks)
+    try {
+      if (isNew) {
+        if (data.repeatWeeks > 1) {
+          await bulkCreateLessons(payload, data.repeatWeeks)
+        } else {
+          await createLesson(payload)
+        }
       } else {
-        await createLesson(payload)
+        await updateLesson(data.id!, payload)
       }
-    } else {
-      await updateLesson(data.id!, payload)
+      setModalLesson(null)
+      fetchLessons()
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? '保存に失敗しました'
+      alert(msg)
     }
-    setModalLesson(null)
-    fetchLessons()
   }
 
   const handleSaveBooths = async () => {
     const val = Math.max(0, parseInt(boothInput, 10) || 0)
-    await updateSetting('max_booths', String(val))
-    setMaxBooths(val)
-    setShowBoothSettings(false)
+    try {
+      await updateSetting('max_booths', String(val))
+      setMaxBooths(val)
+      setShowBoothSettings(false)
+    } catch {
+      alert('設定の保存に失敗しました')
+    }
   }
 
   const handleDelete = async () => {
     if (!modalLesson?.id) return
     if (!confirm('この授業を削除しますか？')) return
-    await deleteLesson(modalLesson.id)
-    setModalLesson(null)
-    fetchLessons()
+    try {
+      await deleteLesson(modalLesson.id)
+      setModalLesson(null)
+      fetchLessons()
+    } catch {
+      alert('削除に失敗しました')
+    }
   }
 
   const weekDates = getWeekDates(baseDate)
