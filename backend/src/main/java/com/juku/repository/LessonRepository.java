@@ -38,6 +38,21 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
         Long teacherId, Lesson.Status status, LocalDateTime from, LocalDateTime to
     );
 
+    /** 指定時間帯に重複する授業数（キャンセル除く） */
+    @Query(value = "SELECT COUNT(*) FROM lessons WHERE status != 'CANCELLED' " +
+                   "AND scheduled_at < :end " +
+                   "AND (scheduled_at + duration_min * INTERVAL '1 minute') > :start",
+           nativeQuery = true)
+    long countConcurrentLessons(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    /** 指定IDを除いた重複授業数（更新時用） */
+    @Query(value = "SELECT COUNT(*) FROM lessons WHERE id != :excludeId AND status != 'CANCELLED' " +
+                   "AND scheduled_at < :end " +
+                   "AND (scheduled_at + duration_min * INTERVAL '1 minute') > :start",
+           nativeQuery = true)
+    long countConcurrentLessonsExcluding(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end,
+                                         @Param("excludeId") Long excludeId);
+
     @Query("SELECT l FROM Lesson l WHERE l.teacher.id = :teacherId " +
            "AND l.status = 'DONE' AND l.scheduledAt BETWEEN :from AND :to")
     List<Lesson> findDoneByTeacherAndPeriod(

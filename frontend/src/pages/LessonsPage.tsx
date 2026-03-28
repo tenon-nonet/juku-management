@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getLessons, getStaff, getStudents, getCourses, createLesson, updateLesson, deleteLesson, rescheduleLesson, bulkCreateLessons } from '../api'
+import { getLessons, getStaff, getStudents, getCourses, createLesson, updateLesson, deleteLesson, rescheduleLesson, bulkCreateLessons, getSettings, updateSetting } from '../api'
 import type { Lesson, Staff, Student, Course } from '../types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -73,6 +73,34 @@ function layoutLessons(lessons: Lesson[]) {
   return out.map(o => ({ ...o, maxCols: total }))
 }
 
+// ─── Booth utilities ─────────────────────────────────────────────────────────
+
+/** 指定の日時に同時進行している授業数を返す */
+function concurrentAt(lessons: Lesson[], slotStart: Date, slotEnd: Date): number {
+  return lessons.filter(l => {
+    if (l.status === 'CANCELLED') return false
+    const s = new Date(l.scheduledAt)
+    const e = new Date(s.getTime() + l.durationMin * 60_000)
+    return s < slotEnd && e > slotStart
+  }).length
+}
+
+function boothBarColor(used: number, max: number): string {
+  if (max <= 0 || used === 0) return ''
+  const pct = used / max
+  if (pct >= 1) return 'bg-red-500'
+  if (pct >= 0.7) return 'bg-amber-400'
+  return 'bg-emerald-400'
+}
+
+function boothBgClass(used: number, max: number): string {
+  if (max <= 0 || used === 0) return ''
+  const pct = used / max
+  if (pct >= 1) return 'bg-red-50/70 dark:bg-red-900/20'
+  if (pct >= 0.7) return 'bg-amber-50/60 dark:bg-amber-900/10'
+  return 'bg-emerald-50/40 dark:bg-emerald-900/10'
+}
+
 // ─── LessonBlock ─────────────────────────────────────────────────────────────
 
 function LessonBlock({ lesson, col, maxCols, onClick }: {
@@ -116,11 +144,12 @@ function LessonBlock({ lesson, col, maxCols, onClick }: {
 
 // ─── TimeGrid ─────────────────────────────────────────────────────────────────
 
-function TimeGrid({ date, lessons, onReschedule, onSlotClick, onLessonClick }: {
+function TimeGrid({ date, lessons, onReschedule, onSlotClick, onLessonClick, maxBooths = 0 }: {
   date: Date; lessons: Lesson[]
   onReschedule: (id: number, t: Date) => void
   onSlotClick: (t: Date) => void
   onLessonClick: (l: Lesson) => void
+  maxBooths?: number
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const laid = layoutLessons(lessons)
@@ -150,6 +179,17 @@ function TimeGrid({ date, lessons, onReschedule, onSlotClick, onLessonClick }: {
       }}
       onClick={(e) => { onSlotClick(calcTime(e.clientY)) }}
     >
+      {/* ブース利用率オーバーレイ */}
+      {maxBooths > 0 && Array.from({ length: TOTAL_HOURS }, (_, i) => {
+        const slotStart = new Date(date); slotStart.setHours(START_HOUR + i, 0, 0, 0)
+        const slotEnd   = new Date(date); slotEnd.setHours(START_HOUR + i + 1, 0, 0, 0)
+        const used = concurrentAt(lessons, slotStart, slotEnd)
+        const bgClass = boothBgClass(used, maxBooths)
+        return bgClass ? (
+          <div key={`b${i}`} style={{ position: 'absolute', top: `${i * PX_PER_HOUR}px`, left: 0, right: 0, height: PX_PER_HOUR }}
+            className={bgClass} />
+        ) : null
+      })}
       {Array.from({ length: TOTAL_HOURS + 1 }, (_, i) => (
         <div key={i} style={{ position: 'absolute', top: `${i * PX_PER_HOUR}px`, left: 0, right: 0, height: 1 }}
           className="bg-gray-100 dark:bg-gray-700/50" />
@@ -165,42 +205,88 @@ function TimeGrid({ date, lessons, onReschedule, onSlotClick, onLessonClick }: {
   )
 }
 
-const TimeLabels = () => (
-  <div className="flex-shrink-0 relative border-r border-gray-200 dark:border-gray-700" style={{ width: 52, height: `${TOTAL_HOURS * PX_PER_HOUR}px` }}>
-    {Array.from({ length: TOTAL_HOURS + 1 }, (_, i) => (
-      <div key={i} style={{ position: 'absolute', top: `${i * PX_PER_HOUR - 7}px` }}
-        className="text-xs text-gray-400 dark:text-gray-500 text-right pr-2 w-full leading-none">
-        {START_HOUR + i}:00
-      </div>
-    ))}
-  </div>
-)
+function TimeLabels({ lessons = [], maxBooths = 0, date = new Date() }: {
+  lessons?: Lesson[]; maxBooths?: number; date?: Date
+}) {
+  return (
+    <div className="flex-shrink-0 relative border-r border-gray-200 dark:border-gray-700"
+      style={{ width: maxBooths > 0 ? 64 : 52, height: `${TOTAL_HOURS * PX_PER_HOUR}px` }}>
+      {Array.from({ length: TOTAL_HOURS + 1 }, (_, i) => {
+        const hour = START_HOUR + i
+        let used = 0
+        if (maxBooths > 0 && i < TOTAL_HOURS) {
+          const s = new Date(date); s.setHours(hour, 0, 0, 0)
+          const e = new Date(date); e.setHours(hour + 1, 0, 0, 0)
+          used = concurrentAt(lessons, s, e)
+        }
+        return (
+          <div key={i} style={{ position: 'absolute', top: `${i * PX_PER_HOUR - 7}px` }}
+            className="w-full leading-none flex items-center justify-end gap-1 pr-2">
+            {maxBooths > 0 && i < TOTAL_HOURS && used > 0 && (
+              <span className={`text-xs font-semibold tabular-nums ${used >= maxBooths ? 'text-red-500' : used >= maxBooths * 0.7 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                {used}
+              </span>
+            )}
+            <span className="text-xs text-gray-400 dark:text-gray-500">{hour}:00</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── BoothBadge ───────────────────────────────────────────────────────────────
+
+function BoothBadge({ used, max, label }: { used: number; max: number; label?: string }) {
+  const pct = used / max
+  const colorClass = pct >= 1 ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+    : pct >= 0.7 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+  return (
+    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${colorClass}`}>
+      {label && <span className="opacity-70">{label}:</span>}
+      {used}/{max} ブース
+      {pct >= 1 && <span>⚠️</span>}
+    </span>
+  )
+}
 
 // ─── DayView ──────────────────────────────────────────────────────────────────
 
-function DayView({ date, lessons, onReschedule, onSlotClick, onLessonClick }: {
-  date: Date; lessons: Lesson[]
+function DayView({ date, lessons, maxBooths, onReschedule, onSlotClick, onLessonClick }: {
+  date: Date; lessons: Lesson[]; maxBooths: number
   onReschedule: (id: number, t: Date) => void
   onSlotClick: (t: Date) => void
   onLessonClick: (l: Lesson) => void
 }) {
   const dayLessons = lessons.filter(l => isSameDay(new Date(l.scheduledAt), date))
+  const peakUsed = maxBooths > 0
+    ? Math.max(0, ...Array.from({ length: TOTAL_HOURS }, (_, i) => {
+        const s = new Date(date); s.setHours(START_HOUR + i, 0, 0, 0)
+        const e = new Date(date); e.setHours(START_HOUR + i + 1, 0, 0, 0)
+        return concurrentAt(dayLessons, s, e)
+      }))
+    : 0
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className={`px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 ${isToday(date) ? 'bg-indigo-50 dark:bg-indigo-900/20' : 'bg-gray-50 dark:bg-gray-900'}`}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <p className={`font-semibold ${isToday(date) ? 'text-indigo-700 dark:text-indigo-300' : 'text-gray-700 dark:text-gray-200'}`}>
             {date.getFullYear()}年{date.getMonth()+1}月{date.getDate()}日（{DAYS_JP[date.getDay() === 0 ? 6 : date.getDay()-1]}）
           </p>
           {isToday(date) && <span className="text-xs bg-indigo-600 text-white px-1.5 py-0.5 rounded-full">今日</span>}
+          {maxBooths > 0 && (
+            <BoothBadge used={peakUsed} max={maxBooths} label="ピーク" />
+          )}
         </div>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{dayLessons.length}件 · 空きスロットをクリックして追加</p>
       </div>
       <div className="overflow-y-auto" style={{ maxHeight: '70vh' }}>
         <div className="flex">
-          <TimeLabels />
+          <TimeLabels lessons={dayLessons} maxBooths={maxBooths} date={date} />
           <div className="flex-1 pr-1">
-            <TimeGrid date={date} lessons={dayLessons} onReschedule={onReschedule} onSlotClick={onSlotClick} onLessonClick={onLessonClick} />
+            <TimeGrid date={date} lessons={dayLessons} maxBooths={maxBooths} onReschedule={onReschedule} onSlotClick={onSlotClick} onLessonClick={onLessonClick} />
           </div>
         </div>
       </div>
@@ -210,34 +296,52 @@ function DayView({ date, lessons, onReschedule, onSlotClick, onLessonClick }: {
 
 // ─── WeekView ─────────────────────────────────────────────────────────────────
 
-function WeekView({ weekDates, lessons, onReschedule, onSlotClick, onLessonClick }: {
-  weekDates: Date[]; lessons: Lesson[]
+function WeekView({ weekDates, lessons, maxBooths, onReschedule, onSlotClick, onLessonClick }: {
+  weekDates: Date[]; lessons: Lesson[]; maxBooths: number
   onReschedule: (id: number, t: Date) => void
   onSlotClick: (t: Date) => void
   onLessonClick: (l: Lesson) => void
 }) {
+  const labelWidth = maxBooths > 0 ? 64 : 52
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
       <div className="grid border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900"
-        style={{ gridTemplateColumns: '52px repeat(7, 1fr)' }}>
+        style={{ gridTemplateColumns: `${labelWidth}px repeat(7, 1fr)` }}>
         <div />
-        {weekDates.map((d, i) => (
-          <div key={i} className={`py-2 text-center border-l border-gray-200 dark:border-gray-700 ${isToday(d) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
-            <p className={`text-xs ${i === 5 ? 'text-blue-500' : i === 6 ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>{DAYS_JP[i]}</p>
-            <p className={`text-sm font-semibold ${isToday(d) ? 'text-indigo-600 dark:text-indigo-400' : i === 5 ? 'text-blue-600' : i === 6 ? 'text-red-600' : 'text-gray-700 dark:text-gray-200'}`}>
-              {d.getDate()}
-            </p>
-          </div>
-        ))}
+        {weekDates.map((d, i) => {
+          const dayLessons = lessons.filter(l => isSameDay(new Date(l.scheduledAt), d))
+          const peak = maxBooths > 0
+            ? Math.max(0, ...Array.from({ length: TOTAL_HOURS }, (_, h) => {
+                const s = new Date(d); s.setHours(START_HOUR + h, 0, 0, 0)
+                const e = new Date(d); e.setHours(START_HOUR + h + 1, 0, 0, 0)
+                return concurrentAt(dayLessons, s, e)
+              }))
+            : 0
+          return (
+            <div key={i} className={`py-1.5 text-center border-l border-gray-200 dark:border-gray-700 ${isToday(d) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`}>
+              <p className={`text-xs ${i === 5 ? 'text-blue-500' : i === 6 ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}>{DAYS_JP[i]}</p>
+              <p className={`text-sm font-semibold ${isToday(d) ? 'text-indigo-600 dark:text-indigo-400' : i === 5 ? 'text-blue-600' : i === 6 ? 'text-red-600' : 'text-gray-700 dark:text-gray-200'}`}>
+                {d.getDate()}
+              </p>
+              {maxBooths > 0 && peak > 0 && (
+                <div className="flex justify-center mt-0.5">
+                  <span className={`text-xs font-medium ${peak >= maxBooths ? 'text-red-500' : peak >= maxBooths * 0.7 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                    {peak}/{maxBooths}
+                  </span>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
       <div className="overflow-y-auto overflow-x-auto" style={{ maxHeight: '70vh' }}>
-        <div className="grid min-w-[560px]" style={{ gridTemplateColumns: '52px repeat(7, 1fr)' }}>
-          <TimeLabels />
+        <div className="grid min-w-[560px]" style={{ gridTemplateColumns: `${labelWidth}px repeat(7, 1fr)` }}>
+          <TimeLabels lessons={lessons} maxBooths={0} />
           {weekDates.map((d, i) => {
             const dayLessons = lessons.filter(l => isSameDay(new Date(l.scheduledAt), d))
             return (
               <div key={i} className={`border-l border-gray-200 dark:border-gray-700 ${isToday(d) ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}>
-                <TimeGrid date={d} lessons={dayLessons} onReschedule={onReschedule} onSlotClick={onSlotClick} onLessonClick={onLessonClick} />
+                <TimeGrid date={d} lessons={dayLessons} maxBooths={maxBooths} onReschedule={onReschedule} onSlotClick={onSlotClick} onLessonClick={onLessonClick} />
               </div>
             )
           })}
@@ -349,8 +453,8 @@ function YearView({ year, lessons, onMonthClick }: {
 
 // ─── TeacherView ──────────────────────────────────────────────────────────────
 
-function TeacherView({ date, teachers, lessons, onReschedule, onSlotClick, onLessonClick }: {
-  date: Date; teachers: Staff[]; lessons: Lesson[]
+function TeacherView({ date, teachers, lessons, maxBooths, onReschedule, onSlotClick, onLessonClick }: {
+  date: Date; teachers: Staff[]; lessons: Lesson[]; maxBooths: number
   onReschedule: (id: number, t: Date) => void
   onSlotClick: (t: Date, teacherId?: number) => void
   onLessonClick: (l: Lesson) => void
@@ -421,9 +525,10 @@ interface ModalLesson {
   repeatWeeks: number
 }
 
-function LessonModal({ initial, courses, teachers, students, onSave, onDelete, onClose, navigate }: {
+function LessonModal({ initial, courses, teachers, students, allLessons, maxBooths, onSave, onDelete, onClose, navigate }: {
   initial: Partial<ModalLesson>
   courses: Course[]; teachers: Staff[]; students: Student[]
+  allLessons: Lesson[]; maxBooths: number
   onSave: (data: ModalLesson, isNew: boolean) => void
   onDelete?: () => void
   onClose: () => void
@@ -437,6 +542,23 @@ function LessonModal({ initial, courses, teachers, students, onSave, onDelete, o
   })
   const isNew = !form.id
   const set = (key: keyof ModalLesson, val: unknown) => setForm(f => ({ ...f, [key]: val }))
+
+  // ブース利用数チェック
+  const boothWarning = (() => {
+    if (maxBooths <= 0 || !form.scheduledAt) return null
+    const start = new Date(form.scheduledAt)
+    if (isNaN(start.getTime())) return null
+    const end = new Date(start.getTime() + form.durationMin * 60_000)
+    const others = allLessons.filter(l => l.status !== 'CANCELLED' && (!isNew || l.id !== form.id))
+    const concurrent = others.filter(l => {
+      const s = new Date(l.scheduledAt)
+      const e = new Date(s.getTime() + l.durationMin * 60_000)
+      return s < end && e > start
+    }).length
+    if (concurrent >= maxBooths) return `満室（${concurrent}/${maxBooths} ブース使用中）`
+    if (concurrent >= maxBooths * 0.7) return `残り ${maxBooths - concurrent} ブース`
+    return null
+  })()
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -458,6 +580,11 @@ function LessonModal({ initial, courses, teachers, students, onSave, onDelete, o
             <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">日時 *</label>
             <input type="datetime-local" value={form.scheduledAt} onChange={e => set('scheduledAt', e.target.value)}
               className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
+            {boothWarning && (
+              <p className={`mt-1 text-xs font-medium flex items-center gap-1 ${boothWarning.startsWith('満室') ? 'text-red-500' : 'text-amber-500'}`}>
+                {boothWarning.startsWith('満室') ? '🚫' : '⚠️'} {boothWarning}
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -560,12 +687,20 @@ export default function LessonsPage() {
   const [filterCourseId, setFilterCourseId] = useState('')
   const [modalLesson, setModalLesson] = useState<Partial<ModalLesson> | null>(null)
   const [loading, setLoading] = useState(false)
+  const [maxBooths, setMaxBooths] = useState(0)
+  const [showBoothSettings, setShowBoothSettings] = useState(false)
+  const [boothInput, setBoothInput] = useState('0')
 
   // Load static lists once
   useEffect(() => {
     getStaff().then(r => setTeachers(r.data))
     getStudents({}).then(r => setStudents(r.data))
     getCourses().then(r => setCourses(r.data))
+    getSettings().then(r => {
+      const val = parseInt(r.data['max_booths'] ?? '0', 10)
+      setMaxBooths(isNaN(val) ? 0 : val)
+      setBoothInput(String(isNaN(val) ? 0 : val))
+    })
   }, [])
 
   // Compute date range based on view
@@ -696,6 +831,13 @@ export default function LessonsPage() {
     fetchLessons()
   }
 
+  const handleSaveBooths = async () => {
+    const val = Math.max(0, parseInt(boothInput, 10) || 0)
+    await updateSetting('max_booths', String(val))
+    setMaxBooths(val)
+    setShowBoothSettings(false)
+  }
+
   const handleDelete = async () => {
     if (!modalLesson?.id) return
     if (!confirm('この授業を削除しますか？')) return
@@ -765,6 +907,12 @@ export default function LessonsPage() {
         <div className="ml-auto flex items-center gap-2">
           {loading && <span className="text-xs text-gray-400 dark:text-gray-500">読み込み中...</span>}
           <span className="text-xs text-gray-500 dark:text-gray-400">{lessons.length}件</span>
+          <button onClick={() => { setBoothInput(String(maxBooths)); setShowBoothSettings(true) }}
+            className="flex items-center gap-1 text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-2.5 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300"
+            title="ブース設定">
+            <span>🏫</span>
+            <span>{maxBooths > 0 ? `${maxBooths}ブース` : 'ブース設定'}</span>
+          </button>
         </div>
       </div>
 
@@ -782,11 +930,11 @@ export default function LessonsPage() {
 
       {/* Views */}
       {viewMode === 'day' && (
-        <DayView date={baseDate} lessons={lessons} onReschedule={handleReschedule} onSlotClick={handleSlotClick} onLessonClick={handleLessonClick} />
+        <DayView date={baseDate} lessons={lessons} maxBooths={maxBooths} onReschedule={handleReschedule} onSlotClick={handleSlotClick} onLessonClick={handleLessonClick} />
       )}
 
       {viewMode === 'week' && (
-        <WeekView weekDates={weekDates} lessons={lessons} onReschedule={handleReschedule} onSlotClick={handleSlotClick} onLessonClick={handleLessonClick} />
+        <WeekView weekDates={weekDates} lessons={lessons} maxBooths={maxBooths} onReschedule={handleReschedule} onSlotClick={handleSlotClick} onLessonClick={handleLessonClick} />
       )}
 
       {viewMode === 'month' && (
@@ -804,7 +952,7 @@ export default function LessonsPage() {
       )}
 
       {viewMode === 'teacher' && (
-        <TeacherView date={baseDate} teachers={teachers} lessons={lessons} onReschedule={handleReschedule} onSlotClick={handleSlotClick} onLessonClick={handleLessonClick} />
+        <TeacherView date={baseDate} teachers={teachers} lessons={lessons} maxBooths={maxBooths} onReschedule={handleReschedule} onSlotClick={handleSlotClick} onLessonClick={handleLessonClick} />
       )}
 
       {viewMode === 'list' && (
@@ -853,11 +1001,62 @@ export default function LessonsPage() {
         <LessonModal
           initial={modalLesson}
           courses={courses} teachers={teachers} students={students}
+          allLessons={lessons} maxBooths={maxBooths}
           onSave={handleSave}
           onDelete={modalLesson.id ? handleDelete : undefined}
           onClose={() => setModalLesson(null)}
           navigate={navigate}
         />
+      )}
+
+      {/* ブース設定モーダル */}
+      {showBoothSettings && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowBoothSettings(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="font-semibold text-gray-800 dark:text-gray-100">ブース設定</h2>
+              <button onClick={() => setShowBoothSettings(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">×</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">最大ブース数</label>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  同時に授業可能な部屋・ブースの数を設定します。0 に設定すると制限なしになります。
+                </p>
+                <div className="flex items-center gap-3">
+                  <input type="number" min={0} max={99} value={boothInput}
+                    onChange={e => setBoothInput(e.target.value)}
+                    className="w-24 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-lg font-semibold text-center bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100" />
+                  <span className="text-gray-500 dark:text-gray-400 text-sm">ブース</span>
+                </div>
+                {parseInt(boothInput) > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {Array.from({ length: Math.min(parseInt(boothInput), 20) }, (_, i) => (
+                      <span key={i} className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-lg flex items-center justify-center text-xs font-medium">
+                        {i + 1}
+                      </span>
+                    ))}
+                    {parseInt(boothInput) > 20 && <span className="text-xs text-gray-400">…</span>}
+                  </div>
+                )}
+                {parseInt(boothInput) === 0 && (
+                  <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">制限なし（ブース管理を使用しない）</p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 px-5 py-4 border-t border-gray-200 dark:border-gray-700">
+              <button onClick={() => setShowBoothSettings(false)}
+                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                キャンセル
+              </button>
+              <button onClick={handleSaveBooths}
+                className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+                保存
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

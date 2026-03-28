@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +28,7 @@ public class LessonService {
     private final CourseRepository courseRepository;
     private final StaffRepository staffRepository;
     private final StudentRepository studentRepository;
+    private final JdbcTemplate jdbc;
 
     public List<LessonResponse> findByFilters(LocalDateTime from, LocalDateTime to, Long courseId, Long teacherId, Long studentId) {
         return lessonRepository.findByFilters(from, to, courseId, teacherId, studentId)
@@ -38,17 +41,46 @@ public class LessonService {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @Transactional
     public LessonResponse create(LessonRequest req) {
+        checkBoothCapacity(req.getScheduledAt(),
+                req.getScheduledAt().plusMinutes(Math.max(req.getDurationMin(), 1)), null);
         Lesson l = new Lesson();
         applyRequest(l, req);
         return new LessonResponse(lessonRepository.save(l));
     }
 
+    @Transactional
     public LessonResponse update(Long id, LessonRequest req) {
         Lesson l = lessonRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        checkBoothCapacity(req.getScheduledAt(),
+                req.getScheduledAt().plusMinutes(Math.max(req.getDurationMin(), 1)), id);
         applyRequest(l, req);
         return new LessonResponse(lessonRepository.save(l));
+    }
+
+    /** ブース上限チェック。超過時は 409 CONFLICT をスロー。 */
+    private void checkBoothCapacity(LocalDateTime start, LocalDateTime end, Long excludeId) {
+        int max = getMaxBooths();
+        if (max <= 0) return;
+        long concurrent = excludeId == null
+                ? lessonRepository.countConcurrentLessons(start, end)
+                : lessonRepository.countConcurrentLessonsExcluding(start, end, excludeId);
+        if (concurrent >= max) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "ブースが満員です（使用中: " + concurrent + "/" + max + "）");
+        }
+    }
+
+    private int getMaxBooths() {
+        try {
+            String val = jdbc.queryForObject(
+                    "SELECT value FROM system_settings WHERE key = 'max_booths'", String.class);
+            return val != null ? Integer.parseInt(val) : 0;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     @Transactional

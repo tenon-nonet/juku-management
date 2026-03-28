@@ -219,6 +219,11 @@ export const createTask = (data: Partial<Task>) => api.post<Task>('/tasks', data
 export const updateTask = (id: number, data: Partial<Task>) => api.put<Task>(`/tasks/${id}`, data)
 export const deleteTask = (id: number) => api.delete(`/tasks/${id}`)
 
+// System Settings（システム設定）
+export const getSettings = () => api.get<Record<string, string>>('/settings')
+export const updateSetting = (key: string, value: string) =>
+  api.patch(`/settings/${key}`, { value })
+
 // Absence Requests（欠席連絡）
 export const getAllAbsenceRequests = () => api.get<AbsenceRequest[]>('/absence-requests')
 export const getPendingAbsences = () => api.get<AbsenceRequest[]>('/absence-requests/pending')
